@@ -9,16 +9,50 @@ import json
 # TODO: check if a resource exists first, leading to...
 # TODO: make these functions idempotent, so they can be run multiple times without having to delete stuff?
 
-def _find_team_id_from_name_in_target_org(api_target, looking_for_team_name):
-    teams = api_target.teams.list()["data"]
+def _find_existing_team_id(api, team_name):
+    teams = api.teams.list()["data"]
     found_team_id = None
 
     for team in teams:
-        if team["attributes"]["name"] == looking_for_team_name:
+        if team["attributes"]["name"] == team_name:
             found_team_id = team["id"]
 
     return found_team_id
 
+
+def _find_existing_workspace_id(api, workspace_name):
+    workspaces = api.workspaces.list()["data"]
+
+    found_workspace_id = None
+
+    for workspace in workspaces:
+        if workspace["attributes"]["name"] == workspace_name:
+            found_workspace_id = workspace["id"]
+
+
+    return found_workspace_id
+
+# TODO: make sure to handle all of these that can have collisions.
+# migrate_organization_memberships
+# migrate_ssh_keys
+# migrate_ssh_key_files
+# migrate_agent_pools
+# migrate_workspaces
+# migrate_all_state
+# migrate_current_state
+# migrate_workspace_variables
+# migrate_workspace_sensitive_variables
+# migrate_ssh_keys_to_workspaces
+# migrate_workspace_run_triggers
+# migrate_workspace_notifications
+# migrate_workspace_team_access
+# migrate_configuration_versions
+# migrate_configuration_files
+# migrate_policies
+# migrate_policy_sets
+# migrate_policy_set_parameters
+# migrate_policy_set_sensitive_parameters
+# migrate_registry_modules
 
 def migrate_teams(api_source, api_target):
     # Fetch Teams from Existing Org
@@ -57,9 +91,9 @@ def migrate_teams(api_source, api_target):
             except Exception as err:
                 # TODO: team likely already exists, but double check the exception
                 # TODO: we should also note that existing teams may be overwritten, or rather, that the target org should be empty.
-                existing_team_id = _find_team_id_from_name_in_target_org(api_target, team["attributes"]["name"])
+                # print(err)
+                existing_team_id = _find_existing_team_id(api_target, team["attributes"]["name"])
                 teams_map[team["id"]] = existing_team_id
-                print(err)
 
     return teams_map
 
@@ -153,7 +187,7 @@ def migrate_ssh_key_files(api_target, ssh_key_name_map, ssh_key_file_path_map):
             }
         }
 
-        # Upload the SSH Key File to the New Organization
+        # Upload the SSH Key File to the new organization
         # Note: The ssh_key_file_path_map must be created ahead of time with a format of {"ssh_key_name":"path/to/file"}
         api_target.ssh_keys.update(
             ssh_key_name_map[ssh_key], new_ssh_key_file_payload)
@@ -192,9 +226,12 @@ def migrate_workspaces(api_source, api_target, tfe_vcs_connection_map, agent_poo
     workspaces_map = {}
     workspace_to_ssh_key_map = {}
     for workspace in workspaces:
-        branch = "" if workspace["attributes"]["vcs-repo"] is None else workspace["attributes"]["vcs-repo"]["branch"]
-        ingress_submodules = False if workspace["attributes"][
-            "vcs-repo"] is None else workspace["attributes"]["vcs-repo"]["ingress-submodules"]
+        branch = "" if workspace["attributes"]["vcs-repo"] is None \
+            else workspace["attributes"]["vcs-repo"]["branch"]
+
+        ingress_submodules = False if workspace["attributes"]["vcs-repo"] is None \
+            else workspace["attributes"]["vcs-repo"]["ingress-submodules"]
+
         default_branch = True if branch == "" else False
 
         if workspace["attributes"]["vcs-repo"] is not None:
@@ -229,12 +266,16 @@ def migrate_workspaces(api_source, api_target, tfe_vcs_connection_map, agent_poo
                     }
                 }
 
-                # Build the new Workspace
-                new_workspace = api_target.workspaces.create(
-                    new_workspace_payload)
-                new_workspace_id = new_workspace["data"]["id"]
+                try:
+                    # Build the new Workspace
+                    new_workspace = api_target.workspaces.create(new_workspace_payload)
+                    new_workspace_id = new_workspace["data"]["id"]
 
-                workspaces_map[workspace["id"]] = new_workspace_id
+                    workspaces_map[workspace["id"]] = new_workspace_id
+                except Exception as err:
+                    # TODO: catch the actual exception
+                    existing_workspace_id = _find_existing_workspace_id(api_target, workspace["attributes"]["name"])
+                    workspaces_map[workspace["id"]] = existing_workspace_id
 
                 try:
                     ssh_key = workspace["relationships"]["ssh-key"]["data"]["id"]
@@ -271,12 +312,16 @@ def migrate_workspaces(api_source, api_target, tfe_vcs_connection_map, agent_poo
                     }
                 }
 
-                # Build the new Workspace
-                new_workspace = api_target.workspaces.create(
-                    new_workspace_payload)
-                new_workspace_id = new_workspace["data"]["id"]
+                try:
+                    # Build the new Workspace
+                    new_workspace = api_target.workspaces.create(new_workspace_payload)
+                    new_workspace_id = new_workspace["data"]["id"]
 
-                workspaces_map[workspace["id"]] = new_workspace_id
+                    workspaces_map[workspace["id"]] = new_workspace_id
+                except Exception as err:
+                    # TODO: catch the actual exception
+                    existing_workspace_id = _find_existing_workspace_id(api_target, workspace["attributes"]["name"])
+                    workspaces_map[workspace["id"]] = existing_workspace_id
 
                 try:
                     ssh_key = workspace["relationships"]["ssh-key"]["data"]["id"]
@@ -308,12 +353,16 @@ def migrate_workspaces(api_source, api_target, tfe_vcs_connection_map, agent_poo
                     }
                 }
 
-                # Build the new Workspace
-                new_workspace = api_target.workspaces.create(
-                    new_workspace_payload)
-                new_workspace_id = new_workspace["data"]["id"]
+                try:
+                    # Build the new Workspace
+                    new_workspace = api_target.workspaces.create(new_workspace_payload)
+                    new_workspace_id = new_workspace["data"]["id"]
 
-                workspaces_map[workspace["id"]] = new_workspace_id
+                    workspaces_map[workspace["id"]] = new_workspace_id
+                except Exception as err:
+                    # TODO: catch the actual exception
+                    existing_workspace_id = _find_existing_workspace_id(api_target, workspace["attributes"]["name"])
+                    workspaces_map[workspace["id"]] = existing_workspace_id
 
                 try:
                     ssh_key = workspace["relationships"]["ssh-key"]["data"]["id"]
@@ -343,10 +392,16 @@ def migrate_workspaces(api_source, api_target, tfe_vcs_connection_map, agent_poo
                     }
                 }
 
-                # Build the new Workspace
-                new_workspace = api_target.workspaces.create(
-                    new_workspace_payload)
-                new_workspace_id = new_workspace["data"]["id"]
+                try:
+                    # Build the new Workspace
+                    new_workspace = api_target.workspaces.create(new_workspace_payload)
+                    new_workspace_id = new_workspace["data"]["id"]
+
+                    workspaces_map[workspace["id"]] = new_workspace_id
+                except Exception as err:
+                    # TODO: catch the actual exception
+                    existing_workspace_id = _find_existing_workspace_id(api_target, workspace["attributes"]["name"])
+                    workspaces_map[workspace["id"]] = existing_workspace_id
 
                 workspaces_map[workspace["id"]] = new_workspace_id
 
@@ -699,65 +754,78 @@ def migrate_current_state(api_source, api_target, tfe_org_original, workspaces_m
     return
 
 
-def migrate_workspace_variables(api_source, api_target, tfe_org_original, workspaces_map, return_sensitive_variable_data=True):
+def migrate_workspace_variables(\
+        api_source, api_target, tfe_org_original, workspaces_map, \
+            return_sensitive_variable_data=True):
     sensitive_variable_data = []
     for workspace_id in workspaces_map:
         new_workspace_id = workspaces_map[workspace_id]
-        # Pull Variables from the Old Workspace
-        workspace_variables = api_source.workspace_vars.list(workspace_id)[
-            "data"]
 
-        for variable in reversed(workspace_variables):
+        # Pull variables from the old workspace
+        workspace_vars = api_source.workspace_vars.list(workspace_id)["data"]
+
+        # Get the variables that may already exist in the new workspace from a previous run
+        existing_workspace_vars = api_target.workspace_vars.list(new_workspace_id)["data"]
+        existing_variable_names = [var["attributes"]["key"] for var in existing_workspace_vars]
+
+        # TODO: why is this reversed?
+        for variable in reversed(workspace_vars):
             variable_key = variable["attributes"]["key"]
-            variable_value = variable["attributes"]["value"]
-            variable_category = variable["attributes"]["category"]
-            variable_hcl = variable["attributes"]["hcl"]
-            variable_description = variable["attributes"]["description"]
-            variable_sensitive = variable["attributes"]["sensitive"]
 
-            # Build the new variable payload
-            new_variable_payload = {
-                "data": {
-                    "type": "vars",
-                    "attributes": {
-                        "key": variable_key,
-                        "value": variable_value,
-                        "description": variable_description,
-                        "category": variable_category,
-                        "hcl": variable_hcl,
-                        "sensitive": variable_sensitive
+            # Make sure we haven't already created this variable in a past run
+            if variable_key not in existing_variable_names:
+                variable_value = variable["attributes"]["value"]
+                variable_category = variable["attributes"]["category"]
+                variable_hcl = variable["attributes"]["hcl"]
+                variable_description = variable["attributes"]["description"]
+                variable_sensitive = variable["attributes"]["sensitive"]
+
+                # Build the new variable payload
+                new_variable_payload = {
+                    "data": {
+                        "type": "vars",
+                        "attributes": {
+                            "key": variable_key,
+                            "value": variable_value,
+                            "description": variable_description,
+                            "category": variable_category,
+                            "hcl": variable_hcl,
+                            "sensitive": variable_sensitive
+                        }
                     }
                 }
-            }
 
-            # Migrate variables to the new Workspace
-            new_variable = api_target.workspace_vars.create(
-                new_workspace_id, new_variable_payload)["data"]
-            new_variable_id = new_variable["id"]
+                # Migrate variables to the new Workspace
+                new_variable = api_target.workspace_vars.create(
+                    new_workspace_id, new_variable_payload)["data"]
+                new_variable_id = new_variable["id"]
 
-            if variable_sensitive and return_sensitive_variable_data:
-                workspace_name = api_target.workspaces.show(workspace_id=workspace_id)[
-                    "data"]["attributes"]["name"]
+                if variable_sensitive and return_sensitive_variable_data:
+                    workspace_name = api_target.workspaces.show(workspace_id=workspace_id)\
+                        ["data"]["attributes"]["name"]
 
-                # Build the sensitive variable map
-                variable_data = {
-                    "workspace_name": workspace_name,
-                    "workspace_id": new_workspace_id,
-                    "variable_id": new_variable_id,
-                    "variable_key": variable_key,
-                    "variable_value": variable_value,
-                    "variable_description": variable_description,
-                    "variable_category": variable_category,
-                    "variable_hcl": variable_hcl
-                }
+                    # Build the sensitive variable map
+                    variable_data = {
+                        "workspace_name": workspace_name,
+                        "workspace_id": new_workspace_id,
+                        "variable_id": new_variable_id,
+                        "variable_key": variable_key,
+                        "variable_value": variable_value,
+                        "variable_description": variable_description,
+                        "variable_category": variable_category,
+                        "variable_hcl": variable_hcl
+                    }
 
-                sensitive_variable_data.append(variable_data)
+                    sensitive_variable_data.append(variable_data)
     return sensitive_variable_data
 
-
-# Note: The sensitive_variable_data_map map must be created ahead of time. The easiest way to do this is to
-# update the value for each variable in the list returned by the migrate_workspace_variables method
 def migrate_workspace_sensitive_variables(api_target, sensitive_variable_data_map):
+    """
+    NOTE: The sensitive_variable_data_map map must be created ahead of time. The easiest way to
+    do this is to update the value for each variable in the list returned by the
+    migrate_workspace_variables method
+    """
+
     for sensitive_variable in sensitive_variable_data_map:
         # Build the new variable payload
         update_variable_payload = {
@@ -777,11 +845,14 @@ def migrate_workspace_sensitive_variables(api_target, sensitive_variable_data_ma
 
         # Update the Sensitive Variable value in the New Workspace
         api_target.workspace_vars.update(
-            sensitive_variable["workspace_id"], sensitive_variable["variable_id"], update_variable_payload)
+            sensitive_variable["workspace_id"], \
+                sensitive_variable["variable_id"], update_variable_payload)
     return
 
 
-def migrate_ssh_keys_to_workspaces(api_source, api_target, workspaces_map, workspace_to_ssh_key_map, ssh_keys_map):
+def migrate_ssh_keys_to_workspaces(\
+        api_source, api_target, workspaces_map, workspace_to_ssh_key_map, \
+            ssh_keys_map):
     if workspace_to_ssh_key_map:
         for k, v in workspace_to_ssh_key_map.items():
             # Build the new ssh key payload
@@ -886,8 +957,6 @@ def migrate_workspace_notifications(api_source, api_target, workspaces_map):
                     # Add Notifications to the new Workspace
                     api_target.notification_configs.create(
                         workspaces_map[workspace_id], new_notification_payload)
-    return
-
 
 def migrate_workspace_team_access(api_source, api_target, workspaces_map, teams_map):
     for workspace_id in workspaces_map:
@@ -899,9 +968,8 @@ def migrate_workspace_team_access(api_source, api_target, workspaces_map, teams_
             }
         ]
 
-        # Pull Teams from the Old Workspace
-        workspace_teams = api_source.team_access.list(
-            filters=workspace_team_filters)["data"]
+        # Pull teams from the old workspace
+        workspace_teams = api_source.team_access.list(filters=workspace_team_filters)["data"]
         for workspace_team in workspace_teams:
             if workspace_team["attributes"]["access"] == "custom":
                 # Build the new team access payload
@@ -934,8 +1002,12 @@ def migrate_workspace_team_access(api_source, api_target, workspaces_map, teams_
                     }
                 }
 
-                # Create the Team Workspace Access map for the new Workspace
-                api_target.team_access.add_team_access(new_workspace_team_payload)
+                try:
+                    # Create the Team Workspace Access map for the new Workspace
+                    api_target.team_access.add_team_access(new_workspace_team_payload)
+                except Exception as err:
+                    # TODO
+                    print(err)
             else:
                 # Build the new team access payload
                 new_workspace_team_payload = {
@@ -961,22 +1033,27 @@ def migrate_workspace_team_access(api_source, api_target, workspaces_map, teams_
                     }
                 }
 
-                # Create the Team Workspace Access map for the new Workspace
-                api_target.team_access.add_team_access(new_workspace_team_payload)
-    return
+                try:
+                    # Create the Team Workspace Access map for the new Workspace
+                    api_target.team_access.add_team_access(new_workspace_team_payload)
+                except Exception as err:
+                    # TODO
+                    print(err)
 
 
 def migrate_configuration_versions(api_source, api_target, workspaces_map):
     workspace_to_configuration_version_map = {}
 
     for workspace_id in workspaces_map:
-        workspace_name = api_source.workspaces.show(workspace_id=workspace_id)[
-            "data"]["attributes"]["name"]
-        # Fetch Configuration Versions for the Existing Workspace
-        configuration_versions = api_source.config_versions.list(workspace_id)[
-            "data"]
+        workspace_name = api_source.workspaces.show(workspace_id=workspace_id)\
+            ["data"]["attributes"]["name"]
+
+        # Fetch configuration versions for the existing workspace
+        configuration_versions = api_source.config_versions.list(workspace_id)["data"]
+
         if configuration_versions:
             latest_configuration_version = configuration_versions[0]
+
             if latest_configuration_version["attributes"]["source"] == "tfe-api":
                 # Build the new configuration version payload
                 new_configuration_version_payload = {
@@ -988,10 +1065,12 @@ def migrate_configuration_versions(api_source, api_target, workspaces_map):
                     }
                 }
 
-                # Create a configuration version in the New Organization
-                new_configuration_version = api_target.config_versions.create(
+                # Create a configuration version in the new organization
+                new_configuration_version = api_target.config_versions.create(\
                     workspaces_map[workspace_id], new_configuration_version_payload)["data"]
-                workspace_to_configuration_version_map[workspace_name] = new_configuration_version["id"]
+                workspace_to_configuration_version_map[workspace_name] = \
+                    new_configuration_version["id"]
+
     return workspace_to_configuration_version_map
 
 
@@ -1001,27 +1080,26 @@ def migrate_configuration_files(api_target, workspace_to_configuration_version_m
         # Note: The workspace_to_file_path_map must be created ahead of time with a format of {"workspace_name":"path/to/file"}
         api_target.config_versions.upload(
             workspace_to_file_path_map[workspace_name], workspace_to_configuration_version_map[workspace_name])
-    return
 
 
 def migrate_policies(api_source, api_target, tfe_token_original, tfe_url_original):
-    # Pull Policies from the Old Organization
+    # Pull policies from the old organization
     policies = api_source.policies.list()["data"]
-
     policies_map = {}
 
     if policies:
         for policy in policies:
             policy_id = policy["id"]
 
-            headers = {"Authorization": "Bearer %s" % (
-                tfe_token_original), "Content-Type": "application/vnd.api+json"}
-            policy_download_url = "%s/api/v2/policies/%s/download" % (
-                tfe_url_original, policy_id)
+            headers = {
+                "Authorization": "Bearer %s" % (tfe_token_original),
+                "Content-Type": "application/vnd.api+json"
+            }
+            policy_download_url = "%s/api/v2/policies/%s/download" % \
+                (tfe_url_original, policy_id)
 
-            # Retrieve the Policy Content
-            policy_request = urllib.request.Request(
-                policy_download_url, headers=headers)
+            # Retrieve the policy content
+            policy_request = urllib.request.Request(policy_download_url, headers=headers)
             pull_policy = urllib.request.urlopen(policy_request)
             policy_data = pull_policy.read()
             policy_b64 = policy_data.decode("utf-8")
@@ -1043,21 +1121,19 @@ def migrate_policies(api_source, api_target, tfe_token_original, tfe_url_origina
                 }
             }
 
-            # Create the policy in the New Organization
+            # Create the policy in the new organization
             new_policy = api_target.policies.create(new_policy_payload)
             new_policy_id = new_policy["data"]["id"]
-
             policies_map[policy_id] = new_policy_id
 
-            # Upload the policy content to the new policy in the New Organization
+            # Upload the policy content to the new policy in the new organization
             api_target.policies.upload(new_policy_id, policy_b64)
+
         return policies_map
-    else:
-        return
 
 
 def migrate_policy_sets(api_source, api_target, tfe_vcs_connection_map, workspaces_map, policies_map):
-    # Pull Policy Sets from the Old Organization
+    # Pull Policy Sets from the old organization
     policy_sets = api_source.policy_sets.list(
         page_size=50, include="policies,workspaces")["data"]
 
@@ -1086,13 +1162,12 @@ def migrate_policy_sets(api_source, api_target, tfe_vcs_connection_map, workspac
                     }
                 }
 
-                # Create the policy set in the New Organization
-                new_policy_set = api_target.policy_sets.create(
-                    new_policy_set_payload)
-                policy_sets_map[policy_set["id"]
-                                ] = new_policy_set["data"]["id"]
+                # Create the policy set in the new organization
+                new_policy_set = api_target.policy_sets.create(new_policy_set_payload)
+                policy_sets_map[policy_set["id"]] = new_policy_set["data"]["id"]
             else:
                 workspace_ids = policy_set["relationships"]["workspaces"]["data"]
+
                 for workspace_id in workspace_ids:
                     workspace_id["id"] = workspaces_map[workspace_id["id"]]
 
@@ -1109,26 +1184,25 @@ def migrate_policy_sets(api_source, api_target, tfe_vcs_connection_map, workspac
                                 "branch": policy_set["attributes"]["vcs-repo"]["branch"],
                                 "identifier": policy_set["attributes"]["vcs-repo"]["identifier"],
                                 "ingress-submodules": policy_set["attributes"]["vcs-repo"]["ingress-submodules"],
-                                "oauth-token-id": tfe_vcs_connection_map[policy_set["attributes"]["vcs-repo"]["oauth-token-id"]]
+                                "oauth-token-id": tfe_vcs_connection_map\
+                                    [policy_set["attributes"]["vcs-repo"]["oauth-token-id"]]
                             }
                         },
                         "relationships": {
                             "workspaces": {
-                                "data":
-                                workspace_ids
+                                "data": workspace_ids
                             }
                         }
                     }
                 }
 
-                # Create the policy set in the New Organization
-                new_policy_set = api_target.policy_sets.create(
-                    new_policy_set_payload)
-                policy_sets_map[policy_set["id"]
-                                ] = new_policy_set["data"]["id"]
+                # Create the policy set in the new organization
+                new_policy_set = api_target.policy_sets.create(new_policy_set_payload)
+                policy_sets_map[policy_set["id"]] = new_policy_set["data"]["id"]
         else:
             if policy_set["attributes"]["global"]:
                 policy_ids = policy_set["relationships"]["policies"]["data"]
+
                 for policy_id in policy_ids:
                     policy_id["id"] = policies_map[policy_id["id"]]
 
@@ -1143,18 +1217,15 @@ def migrate_policy_sets(api_source, api_target, tfe_vcs_connection_map, workspac
                         },
                         "relationships": {
                             "policies": {
-                                "data":
-                                policy_ids
+                                "data": policy_ids
                             }
                         }
                     }
                 }
 
-                # Create the policy set in the New Organization
-                new_policy_set = api_target.policy_sets.create(
-                    new_policy_set_payload)
-                policy_sets_map[policy_set["id"]
-                                ] = new_policy_set["data"]["id"]
+                # Create the policy set in the new organization
+                new_policy_set = api_target.policy_sets.create(new_policy_set_payload)
+                policy_sets_map[policy_set["id"]] = new_policy_set["data"]["id"]
             else:
                 policy_ids = policy_set["relationships"]["policies"]["data"]
                 for policy_id in policy_ids:
@@ -1175,29 +1246,26 @@ def migrate_policy_sets(api_source, api_target, tfe_vcs_connection_map, workspac
                         },
                         "relationships": {
                             "policies": {
-                                "data":
-                                policy_ids
+                                "data": policy_ids
                             },
                             "workspaces": {
-                                "data":
-                                workspace_ids
+                                "data": workspace_ids
                             }
                         }
                     }
                 }
 
-                # Create the policy set in the New Organization
-                new_policy_set = api_target.policy_sets.create(
-                    new_policy_set_payload)
-                policy_sets_map[policy_set["id"]
-                                ] = new_policy_set["data"]["id"]
+                # Create the policy set in the new organization
+                new_policy_set = api_target.policy_sets.create(new_policy_set_payload)
+                policy_sets_map[policy_set["id"]] = new_policy_set["data"]["id"]
+
     return policy_sets_map
 
 
 # This is an example version of the migrate_policy_sets function that includes support for Workspaces connected to GitHub Apps
 # Managing these connections is not currently supported via the API, but might be in a future version.
 # def migrate_policy_sets(api_source, api_target, tfe_vcs_connection_map, workspaces_map, policies_map):
-#     # Pull Policy Sets from the Old Organization
+#     # Pull Policy Sets from the old organization
 #     policy_sets = api_source.policy_sets.list(
 #         page_size=50, include="policies,workspaces")["data"]
 
@@ -1249,7 +1317,7 @@ def migrate_policy_sets(api_source, api_target, tfe_vcs_connection_map, workspac
 #                         }
 #                     }
 
-#                 # Create the policy set in the New Organization
+#                 # Create the policy set in the new organization
 #                 new_policy_set = api_target.policy_sets.create(
 #                     new_policy_set_payload)
 #                 policy_sets_map[policy_set["id"]
@@ -1310,7 +1378,7 @@ def migrate_policy_sets(api_source, api_target, tfe_vcs_connection_map, workspac
 #                         }
 #                     }
 
-#                 # Create the policy set in the New Organization
+#                 # Create the policy set in the new organization
 #                 new_policy_set = api_target.policy_sets.create(
 #                     new_policy_set_payload)
 #                 policy_sets_map[policy_set["id"]
@@ -1339,7 +1407,7 @@ def migrate_policy_sets(api_source, api_target, tfe_vcs_connection_map, workspac
 #                     }
 #                 }
 
-#                 # Create the policy set in the New Organization
+#                 # Create the policy set in the new organization
 #                 new_policy_set = api_target.policy_sets.create(
 #                     new_policy_set_payload)
 #                 policy_sets_map[policy_set["id"]
@@ -1375,7 +1443,7 @@ def migrate_policy_sets(api_source, api_target, tfe_vcs_connection_map, workspac
 #                     }
 #                 }
 
-#                 # Create the policy set in the New Organization
+#                 # Create the policy set in the new organization
 #                 new_policy_set = api_target.policy_sets.create(
 #                     new_policy_set_payload)
 #                 policy_sets_map[policy_set["id"]
@@ -1388,7 +1456,7 @@ def migrate_policy_set_parameters(api_source, api_target, policy_sets_map, retur
     for policy_set_id in policy_sets_map:
         new_policy_set_id = policy_sets_map[policy_set_id]
 
-        # Pull Policy Sets from the Old Organization
+        # Pull Policy Sets from the old organization
         policy_set_parameters = api_source.policy_set_params.list(
             policy_set_id)["data"]
 
@@ -1412,7 +1480,7 @@ def migrate_policy_set_parameters(api_source, api_target, policy_sets_map, retur
                     }
                 }
 
-                # Create the policy set parameter in the New Organization
+                # Create the policy set parameter in the new organization
                 new_parameter = api_target.policy_set_params.create(
                     new_policy_set_id, new_policy_parameter_payload)["data"]
                 new_parameter_id = new_parameter["id"]
@@ -1435,7 +1503,7 @@ def migrate_policy_set_parameters(api_source, api_target, policy_sets_map, retur
     return sensitive_policy_set_parameter_data
 
 
-# Note: The sensitive_policy_set_parameter_data_map map must be created ahead of time. The easiest way to do this is to
+# NOTE: The sensitive_policy_set_parameter_data_map map must be created ahead of time. The easiest way to do this is to
 # update the value for each variable in the list returned by the migrate_policy_set_parameters method
 def migrate_policy_set_sensitive_parameters(api_target, sensitive_policy_set_parameter_data_map):
     for sensitive_policy_set_parameter in sensitive_policy_set_parameter_data_map:
@@ -1455,17 +1523,16 @@ def migrate_policy_set_sensitive_parameters(api_target, sensitive_policy_set_par
 
         # Update the Sensitive parameter value in the Policy Set
         api_target.policy_set_params.update(
-            sensitive_policy_set_parameter["policy_set_id"], sensitive_policy_set_parameter["parameter_id"], update_policy_set_parameter_payload)
-    return
-
+            sensitive_policy_set_parameter["policy_set_id"], \
+                sensitive_policy_set_parameter["parameter_id"], \
+                    update_policy_set_parameter_payload)
 
 # TODO: Add Support for Modules uploaded via the API
 def migrate_registry_modules(api_source, api_target, tfe_org_original, tfe_vcs_connection_map):
     modules = api_source.registry_modules.list()["modules"]
     for module in modules:
-        # Pull VCS Modules from the Old Organization
-        module_data = api_source.registry_modules.show(
-            tfe_org_original, module["name"], module["provider"])["data"]
+        # Pull VCS Modules from the old organization
+        module_data = api_source.registry_modules.show(module["name"], module["provider"])["data"]
 
         # Build the new Module payload
         new_module_payload = {
@@ -1473,7 +1540,8 @@ def migrate_registry_modules(api_source, api_target, tfe_org_original, tfe_vcs_c
                 "attributes": {
                     "vcs-repo": {
                         "identifier": module_data["attributes"]["vcs-repo"]["identifier"],
-                        "oauth-token-id": tfe_vcs_connection_map[module_data["attributes"]["vcs-repo"]["oauth-token-id"]],
+                        "oauth-token-id": \
+                            tfe_vcs_connection_map[module_data["attributes"]["vcs-repo"]["oauth-token-id"]],
                         "display_identifier": module_data["attributes"]["vcs-repo"]["display-identifier"]
                     }
                 },
@@ -1481,6 +1549,5 @@ def migrate_registry_modules(api_source, api_target, tfe_org_original, tfe_vcs_c
             }
         }
 
-        # Create the Module in the New Organization
+        # Create the Module in the new organization
         api_target.registry_modules.publish_from_vcs(new_module_payload)
-    return
