@@ -106,8 +106,7 @@ if __name__ == "__main__":
     # migrate_policy_set_sensitive_parameters(api_new, sensitive_policy_set_parameter_data_map)
     # print("policy set sensitive parameters successfully migrated")
 
-    migrate_registry_modules(api_original, api_new,
-                             TFE_ORG_ORIGINAL, TFE_VCS_CONNECTION_MAP)
+    migrate_registry_modules(api_original, api_new, TFE_VCS_CONNECTION_MAP)
     print("registry modules successfully migrated")
 
     # MIGRATION OUTPUTS:

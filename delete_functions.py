@@ -56,7 +56,6 @@ def delete_policy_sets(api_new):
     if policy_sets:
         for policy_set in policy_sets:
             api_new.policy_sets.destroy(policy_set['id'])
-    return
 
 
 def delete_policy_set_parameters(api_new):
@@ -67,7 +66,6 @@ def delete_policy_set_parameters(api_new):
             parameters = api_new.policy_set_params.list(policy_set['id'])['data']
             for parameter in parameters:
                 api_new.policy_set_params.destroy(policy_set['id'], parameter['id'])
-    return
 
 
 def delete_modules(api_new):
@@ -75,7 +73,6 @@ def delete_modules(api_new):
     if modules:
         for module in modules:
             api_new.registry_modules.destroy(module['name'])
-    return
 
 
 def delete_all(api_new):
