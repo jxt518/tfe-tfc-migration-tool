@@ -29,20 +29,20 @@ This tool is designed to help automate the migration from one TFE/C Organization
    * Note: For any parameter marked as `Sensitive`, only Key names will be transferred (since Values are write only)
 * Migrate Policy Set Sensitive Parameter Values
    * Note: Prior to using this method, the `sensitive_policy_set_parameter_data_map` map must be manually generated ahead of time. The easiest way to do this is to update the value for each variable in the list returned by the `migrate_policy_set_parameters` method (**Important:** If you intend on doing this, be sure to pass `True` as the final argument to `migrate_policy_set_parameters`)
-* Migrate Registry Modules 
+* Migrate Registry Modules
     * Note: Only VCS-backed Module migration is supported currently
 
 
 ## STEPS:
 ### 1. Install the Python Dependencies
 ```
-pip3 install terrasnek
+pip3 install terrasnek==0.0.11
 ```
 
 ### 2. Set Required Environment Variables for both the Source Org and the New Org
 ```
 # SOURCE ORG
-TFE_TOKEN_ORIGINAL = os.getenv("TFE_TOKEN_ORIGINAL", None) 
+TFE_TOKEN_ORIGINAL = os.getenv("TFE_TOKEN_ORIGINAL", None)
 TFE_URL_ORIGINAL = os.getenv("TFE_URL_ORIGINAL", None)
 TFE_ORG_ORIGINAL = os.getenv("TFE_ORG_ORIGINAL", None)
 
