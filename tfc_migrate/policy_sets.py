@@ -16,7 +16,7 @@ def migrate(\
         source_policy_set_name = source_policy_set["attributes"]["name"]
 
         if source_policy_set_name in target_policy_set_names:
-            print(source_policy_set_name, "policy set already exists, skipping...")
+            print("\t", source_policy_set_name, "policy set already exists, skipping...")
             continue
 
         new_policy_set_payload = {

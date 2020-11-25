@@ -13,7 +13,7 @@ def migrate(api_source, api_target, tfe_vcs_connection_map, agent_pool_id):
         source_workspace_name = source_workspace["attributes"]["name"]
 
         if source_workspace_name in target_workspace_names:
-            print(source_workspace_name, "workspace already exists, skipping...")
+            print("\t", source_workspace_name, "workspace already exists, skipping...")
             continue
 
         branch = "" if source_workspace["attributes"]["vcs-repo"] is None \

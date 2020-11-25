@@ -12,7 +12,7 @@ def migrate(api_source, api_target, tfe_token_original, tfe_url_original):
         for source_policy in source_policies:
             source_policy_name = source_policy["attributes"]["name"],
             if source_policy_name in target_policy_names:
-                print(source_policy_name, "policy already exists, skipping...")
+                print("\t", source_policy_name, "policy already exists, skipping...")
                 continue
             source_policy_id = source_policy["id"]
 

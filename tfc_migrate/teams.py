@@ -15,7 +15,7 @@ def migrate(api_source, api_target):
     for source_team in source_teams:
         source_team_name = source_team["attributes"]["name"]
         if source_team_name in target_team_names:
-            print(source_team_name, "team already exists, skipping...")
+            print("\t", source_team_name, "team already exists, skipping...")
             continue
 
         if source_team_name == "owners":

@@ -595,32 +595,3 @@ def migrate_policy_set_sensitive_parameters(api_target, sensitive_policy_set_par
             sensitive_policy_set_parameter["policy_set_id"], \
                 sensitive_policy_set_parameter["parameter_id"], \
                     update_policy_set_parameter_payload)
-
-# TODO: Add support for modules uploaded via the API
-def migrate_registry_modules(api_source, api_target, tfe_vcs_connection_map):
-    modules = api_source.registry_modules.list()["modules"]
-
-    for module in modules:
-        # Pull VCS modules from the old organization
-        module_data = api_source.registry_modules.show(module["name"], module["provider"])["data"]
-
-        print("MODULE DATA", module_data)
-        # Build the new module payload
-        new_module_payload = {
-            "data": {
-                "attributes": {
-                    "vcs-repo": {
-                        "identifier": module_data["attributes"]["vcs-repo"]["identifier"],
-                        "oauth-token-id": \
-                            tfe_vcs_connection_map\
-                                [module_data["attributes"]["vcs-repo"]["oauth-token-id"]],
-                        "display_identifier": module_data\
-                            ["attributes"]["vcs-repo"]["display-identifier"]
-                    }
-                },
-                "type": "registry-modules"
-            }
-        }
-
-        # Create the module in the new organization
-        api_target.registry_modules.publish_from_vcs(new_module_payload)

@@ -11,7 +11,7 @@ def migrate(api_source, api_target, tfe_vcs_connection_map):
         source_module_name = source_module["name"]
 
         if source_module_name in target_module_names:
-            print(source_module_name, "module already exists, skipping...")
+            print("\t", source_module_name, "module already exists, skipping...")
             continue
 
         # Pull VCS modules from the old organization

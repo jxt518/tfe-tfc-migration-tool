@@ -4,7 +4,7 @@ from terrasnek.api import TFC
 from functions import *
 from tfc_migrate import \
     workspaces, teams, policies, policy_sets, registry_modules, \
-        ssh_keys
+        ssh_keys, config_versions, notification_configs, team_access
 
 
 # SOURCE ORG
@@ -37,87 +37,103 @@ if __name__ == "__main__":
     """
     write_to_file = True
 
+    print("Migrating teams...")
     teams_map = teams.migrate(api_source, api_new)
-    print("teams successfully migrated")
+    print("Teams successfully migrated.")
 
     # org_membership_map = \
     #   migrate_org_memberships(api_source, api_new, teams_map)
     # print("organization memberships successfully migrated")
 
+    print("Migrating SSH keys...")
     ssh_keys_map, ssh_key_name_map = ssh_keys.migrate_keys(api_source, api_new)
-    print("ssh keys successfully migrated")
+    print("SSH keys successfully migrated.")
 
     # migrate_ssh_key_files(api_new, ssh_key_name_map, ssh_key_file_path_map)
     # print("ssh key files successfully migrated")
 
+    print("Migrating agent pools...")
     agent_pool_id = migrate_agent_pools(
         api_source, api_new, TFE_ORG_ORIGINAL, TFE_ORG_NEW)
-    print("agent pools successfully migrated")
+    print("Agent pools successfully migrated.")
 
+    print("Migrating workspaces...")
     workspaces_map, workspace_to_ssh_key_map = \
         workspaces.migrate(api_source, api_new, TFE_VCS_CONNECTION_MAP, agent_pool_id)
-    print("workspaces successfully migrated")
+    print("Workspaces successfully migrated.")
 
     # migrate_all_state(api_source, api_new, TFE_ORG_ORIGINAL, workspaces_map)
+    print("Migrating current states...")
     migrate_current_state(api_source, api_new,
                           TFE_ORG_ORIGINAL, workspaces_map)
-    print("state successfully migrated")
+    print("Current states successfully migrated.")
 
     """
     NOTE: if you wish to generate a map of Sensitive variables that can be used to update
     those values via the migrate_workspace_sensitive_variables method, pass True as the
     final argument (defaults to False).
     """
+    print("Migrating workspace variables...")
+    # TODO: is this var name accurate?
     sensitive_variable_data = migrate_workspace_variables(
         api_source, api_new, workspaces_map)
-    print("workspace variables successfully migrated")
+    print("Workspace variables successfully migrated.")
 
     # migrate_workspace_sensitive_variables(api_new, sensitive_variable_data_map)
     # print("workspace sensitive variables successfully migrated")
 
+    print("Migrating SSH keys for workspaces...")
     migrate_ssh_keys_to_workspaces(
         api_source, api_new, workspaces_map, workspace_to_ssh_key_map, ssh_keys_map)
-    print("workspace ssh keys successfully migrated")
+    print("SSH keys for workspaces successfully migrated.")
 
+    print("Migrating run triggers...")
     migrate_workspace_run_triggers(api_source, api_new, workspaces_map)
-    print("workspace run triggers successfully migrated")
+    print("Run triggers successfully migrated.")
 
-    migrate_workspace_notifications(api_source, api_new, workspaces_map)
-    print("workspace notifications successfully migrated")
+    print("Migrating notification configs...")
+    notification_configs.migrate(api_source, api_new, workspaces_map)
+    print("notifications successfully migrated.")
 
-    migrate_workspace_team_access(
-        api_source, api_new, workspaces_map, teams_map)
-    print("workspace team access successfully migrated")
+    print("Migrating team access...")
+    team_access.migrate(api_source, api_new, workspaces_map, teams_map)
+    print("Team access successfully migrated.")
 
-    workspace_to_configuration_version_map = migrate_configuration_versions(
+    print("Migrating config versions...")
+    workspace_to_configuration_version_map = config_versions.migrate( \
         api_source, api_new, workspaces_map)
-    print("workspace configuration versions successfully migrated")
+    print("workspace configuration versions successfully migrated.")
 
     # migrate_configuration_files(\
     #   api_new, workspace_to_configuration_version_map, workspace_to_file_path_map)
-    # print("workspace configuration files successfully migrated)
+    # print("workspace configuration files successfully migrated.")
 
+    print("Migrating policies...")
     policies_map = policies.migrate(
         api_source, api_new, TFE_TOKEN_ORIGINAL, TFE_URL_ORIGINAL)
-    print("policies successfully migrated")
+    print("policies successfully migrated.")
 
+    print("Migrating policy sets...")
     policy_sets_map = policy_sets.migrate(\
         api_source, api_new, TFE_VCS_CONNECTION_MAP, workspaces_map, policies_map)
-    print("policy sets successfully migrated")
+    print("Policy sets successfully migrated.")
 
     # NOTE: if you wish to generate a map of Sensitive policy set parameters that can be used to update
     # those values via the migrate_policy_set_sensitive_variables method, pass True as the final argument (defaults to False)
+    print("Migrating policy set parameters...")
     sensitive_policy_set_parameter_data = migrate_policy_set_parameters(
         api_source, api_new, policy_sets_map)
-    print("policy set parameters successfully migrated")
+    print("Policy set parameters successfully migrated.")
 
     # migrate_policy_set_sensitive_parameters(api_new, sensitive_policy_set_parameter_data_map)
-    # print("policy set sensitive parameters successfully migrated")
+    # print("policy set sensitive parameters successfully migrated.")
 
+    print("Migrating registry modules...")
     registry_modules.migrate(api_source, api_new, TFE_VCS_CONNECTION_MAP)
-    print("registry modules successfully migrated")
+    print("Registry modules successfully migrated.")
 
-    # MIGRATION OUTPUTS:
+    # Migration Outputs
+    # TODO: improve this writing logic
     if write_to_file:
         with open("outputs.txt", "w") as f:
             f.write("teams_map: %s\n\n" % teams_map)
