@@ -3,7 +3,9 @@ import ast
 from terrasnek.api import TFC
 from functions import *
 from tfc_migrate import \
-    workspaces, teams, policies, policy_sets, registry_modules
+    workspaces, teams, policies, policy_sets, registry_modules, \
+        ssh_keys
+
 
 # SOURCE ORG
 TFE_TOKEN_ORIGINAL = os.getenv("TFE_TOKEN_ORIGINAL", None)
@@ -42,7 +44,7 @@ if __name__ == "__main__":
     #   migrate_org_memberships(api_source, api_new, teams_map)
     # print("organization memberships successfully migrated")
 
-    ssh_keys_map, ssh_key_name_map = migrate_ssh_keys(api_source, api_new)
+    ssh_keys_map, ssh_key_name_map = ssh_keys.migrate_keys(api_source, api_new)
     print("ssh keys successfully migrated")
 
     # migrate_ssh_key_files(api_new, ssh_key_name_map, ssh_key_file_path_map)

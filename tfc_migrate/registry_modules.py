@@ -25,8 +25,8 @@ def migrate(api_source, api_target, tfe_vcs_connection_map):
                 "attributes": {
                     "vcs-repo": {
                         "identifier": source_module_data["attributes"]["vcs-repo"]["identifier"],
-                    # TODO: note that if the VCS the module was originally connected to has been
-                    # deleted, it will not return an Oauth Token ID and this will error.
+                        # TODO: note that if the VCS the module was originally connected to has been
+                        # deleted, it will not return an Oauth Token ID and this will error.
                         "oauth-token-id": \
                             tfe_vcs_connection_map\
                                 [source_module_data["attributes"]["vcs-repo"]["oauth-token-id"]],
