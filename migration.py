@@ -2,14 +2,16 @@ import os
 import ast
 from terrasnek.api import TFC
 from functions import *
+from tfc_migrate import \
+    workspaces, teams, policies, policy_sets, registry_modules
 
 # SOURCE ORG
 TFE_TOKEN_ORIGINAL = os.getenv("TFE_TOKEN_ORIGINAL", None)
 TFE_URL_ORIGINAL = os.getenv("TFE_URL_ORIGINAL", None)
 TFE_ORG_ORIGINAL = os.getenv("TFE_ORG_ORIGINAL", None)
 
-api_original = TFC(TFE_TOKEN_ORIGINAL, url=TFE_URL_ORIGINAL)
-api_original.set_org(TFE_ORG_ORIGINAL)
+api_source = TFC(TFE_TOKEN_ORIGINAL, url=TFE_URL_ORIGINAL)
+api_source.set_org(TFE_ORG_ORIGINAL)
 
 # NEW ORG
 TFE_TOKEN_NEW = os.getenv("TFE_TOKEN_NEW", None)
@@ -20,6 +22,10 @@ TFE_VCS_CONNECTION_MAP = ast.literal_eval(os.getenv("TFE_VCS_CONNECTION_MAP", No
 api_new = TFC(TFE_TOKEN_NEW, url=TFE_URL_NEW)
 api_new.set_org(TFE_ORG_NEW)
 
+# TODO: use a logger instead of print statements
+# TODO: break into a real main function
+# TODO: break out real write functions
+
 
 if __name__ == "__main__":
     """
@@ -29,91 +35,91 @@ if __name__ == "__main__":
     """
     write_to_file = True
 
-    teams_map = migrate_teams(api_original, api_new)
+    teams_map = teams.migrate(api_source, api_new)
     print("teams successfully migrated")
 
-    # organization_membership_map = \
-    #   migrate_organization_memberships(api_original, api_new, teams_map)
+    # org_membership_map = \
+    #   migrate_org_memberships(api_source, api_new, teams_map)
     # print("organization memberships successfully migrated")
 
-    ssh_keys_map, ssh_key_name_map = migrate_ssh_keys(api_original, api_new)
+    ssh_keys_map, ssh_key_name_map = migrate_ssh_keys(api_source, api_new)
     print("ssh keys successfully migrated")
 
     # migrate_ssh_key_files(api_new, ssh_key_name_map, ssh_key_file_path_map)
     # print("ssh key files successfully migrated")
 
     agent_pool_id = migrate_agent_pools(
-        api_original, api_new, TFE_ORG_ORIGINAL, TFE_ORG_NEW)
+        api_source, api_new, TFE_ORG_ORIGINAL, TFE_ORG_NEW)
     print("agent pools successfully migrated")
 
-    workspaces_map, workspace_to_ssh_key_map = migrate_workspaces(
-        api_original, api_new, TFE_VCS_CONNECTION_MAP, agent_pool_id)
+    workspaces_map, workspace_to_ssh_key_map = \
+        workspaces.migrate(api_source, api_new, TFE_VCS_CONNECTION_MAP, agent_pool_id)
     print("workspaces successfully migrated")
 
-    # migrate_all_state(api_original, api_new, TFE_ORG_ORIGINAL, workspaces_map)
-    migrate_current_state(api_original, api_new,
+    # migrate_all_state(api_source, api_new, TFE_ORG_ORIGINAL, workspaces_map)
+    migrate_current_state(api_source, api_new,
                           TFE_ORG_ORIGINAL, workspaces_map)
     print("state successfully migrated")
 
     """
-    Note: if you wish to generate a map of Sensitive variables that can be used to update
+    NOTE: if you wish to generate a map of Sensitive variables that can be used to update
     those values via the migrate_workspace_sensitive_variables method, pass True as the
-    final argument (defaults to False)
+    final argument (defaults to False).
     """
     sensitive_variable_data = migrate_workspace_variables(
-        api_original, api_new, TFE_ORG_ORIGINAL, workspaces_map)
+        api_source, api_new, workspaces_map)
     print("workspace variables successfully migrated")
 
     # migrate_workspace_sensitive_variables(api_new, sensitive_variable_data_map)
     # print("workspace sensitive variables successfully migrated")
 
     migrate_ssh_keys_to_workspaces(
-        api_original, api_new, workspaces_map, workspace_to_ssh_key_map, ssh_keys_map)
+        api_source, api_new, workspaces_map, workspace_to_ssh_key_map, ssh_keys_map)
     print("workspace ssh keys successfully migrated")
 
-    migrate_workspace_run_triggers(api_original, api_new, workspaces_map)
+    migrate_workspace_run_triggers(api_source, api_new, workspaces_map)
     print("workspace run triggers successfully migrated")
 
-    migrate_workspace_notifications(api_original, api_new, workspaces_map)
+    migrate_workspace_notifications(api_source, api_new, workspaces_map)
     print("workspace notifications successfully migrated")
 
     migrate_workspace_team_access(
-        api_original, api_new, workspaces_map, teams_map)
+        api_source, api_new, workspaces_map, teams_map)
     print("workspace team access successfully migrated")
 
     workspace_to_configuration_version_map = migrate_configuration_versions(
-        api_original, api_new, workspaces_map)
+        api_source, api_new, workspaces_map)
     print("workspace configuration versions successfully migrated")
 
     # migrate_configuration_files(\
     #   api_new, workspace_to_configuration_version_map, workspace_to_file_path_map)
     # print("workspace configuration files successfully migrated)
 
-    policies_map = migrate_policies(
-        api_original, api_new, TFE_TOKEN_ORIGINAL, TFE_URL_ORIGINAL)
+    policies_map = policies.migrate(
+        api_source, api_new, TFE_TOKEN_ORIGINAL, TFE_URL_ORIGINAL)
     print("policies successfully migrated")
 
-    policy_sets_map = migrate_policy_sets(
-        api_original, api_new, TFE_VCS_CONNECTION_MAP, workspaces_map, policies_map)
+    policy_sets_map = policy_sets.migrate(\
+        api_source, api_new, TFE_VCS_CONNECTION_MAP, workspaces_map, policies_map)
     print("policy sets successfully migrated")
 
-    # Note: if you wish to generate a map of Sensitive policy set parameters that can be used to update
+    # NOTE: if you wish to generate a map of Sensitive policy set parameters that can be used to update
     # those values via the migrate_policy_set_sensitive_variables method, pass True as the final argument (defaults to False)
     sensitive_policy_set_parameter_data = migrate_policy_set_parameters(
-        api_original, api_new, policy_sets_map)
+        api_source, api_new, policy_sets_map)
     print("policy set parameters successfully migrated")
 
     # migrate_policy_set_sensitive_parameters(api_new, sensitive_policy_set_parameter_data_map)
     # print("policy set sensitive parameters successfully migrated")
 
-    migrate_registry_modules(api_original, api_new, TFE_VCS_CONNECTION_MAP)
+    registry_modules.migrate(api_source, api_new, TFE_VCS_CONNECTION_MAP)
     print("registry modules successfully migrated")
 
     # MIGRATION OUTPUTS:
     if write_to_file:
         with open("outputs.txt", "w") as f:
             f.write("teams_map: %s\n\n" % teams_map)
-            # f.write("organization_membership_map: %s\n\n" % organization_membership_map)
+            # f.write("org_membership_map: %s\n\n" % org_membership_map)
             f.write("ssh_keys_map: %s\n\n" % ssh_keys_map)
             f.write("ssh_key_name_map: %s\n\n" % ssh_key_name_map)
             f.write("workspaces_map: %s\n\n" % workspaces_map)
@@ -129,7 +135,7 @@ if __name__ == "__main__":
         print("MIGRATION MAPS:")
         print("teams_map:", teams_map)
         print("\n")
-        # print("organization_membership_map:", organization_membership_map)
+        # print("org_membership_map:", org_membership_map)
         # print("\n")
         print("ssh_keys_map:", ssh_keys_map)
         print("\n")

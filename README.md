@@ -47,8 +47,8 @@ TFE_TOKEN_ORIGINAL = os.getenv("TFE_TOKEN_ORIGINAL", None)
 TFE_URL_ORIGINAL = os.getenv("TFE_URL_ORIGINAL", None)
 TFE_ORG_ORIGINAL = os.getenv("TFE_ORG_ORIGINAL", None)
 
-api_original = TFC(TFE_TOKEN_ORIGINAL, url=TFE_URL_ORIGINAL)
-api_original.set_org(TFE_ORG_ORIGINAL)
+api_source = TFC(TFE_TOKEN_ORIGINAL, url=TFE_URL_ORIGINAL)
+api_source.set_org(TFE_ORG_ORIGINAL)
 
 # NEW ORG
 TFE_TOKEN_NEW = os.getenv("TFE_TOKEN_NEW", None)
