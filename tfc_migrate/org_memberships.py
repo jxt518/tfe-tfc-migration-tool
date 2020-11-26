@@ -44,3 +44,5 @@ def migrate(api_source, api_target, teams_map):
             new_user_id
 
     return org_membership_map
+
+# TODO: delete function w logging

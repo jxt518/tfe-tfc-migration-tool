@@ -2,6 +2,9 @@
 
 def migrate(\
     api_source, api_target, policy_sets_map, return_sensitive_variable_data=True):
+
+    print("Migrating policy set parameters...")
+
     sensitive_policy_set_parameter_data = []
 
     for policy_set_id in policy_sets_map:
@@ -23,7 +26,7 @@ def migrate(\
                     "data": {
                         "type": "vars",
                         "attributes": {
-                            "key": policy_set_parameter_key,
+                        "key": policy_set_parameter_key,
                             "value": policy_set_parameter_value,
                             "category": policy_set_parameter_category,
                             "sensitive": policy_set_parameter_sensitive
@@ -51,6 +54,8 @@ def migrate(\
                     }
 
                     sensitive_policy_set_parameter_data.append(parameter_data)
+
+    print("Policy set parameters successfully migrated.")
 
     return sensitive_policy_set_parameter_data
 
@@ -84,12 +89,13 @@ def migrate_sensitive(api_target, sensitive_policy_set_parameter_data_map):
                     update_policy_set_parameter_payload)
 
 # TODO: handle paging
-def delete_all(api_new):
-    policy_sets = api_new.policy_sets.list(
+def delete_all(api_target):
+    # TODO: logging
+    policy_sets = api_target.policy_sets.list(
         page_size=50, include="policies,workspaces")['data']
 
     if policy_sets:
         for policy_set in policy_sets:
-            parameters = api_new.policy_set_params.list(policy_set['id'])['data']
+            parameters = api_target.policy_set_params.list(policy_set['id'])['data']
             for parameter in parameters:
-                api_new.policy_set_params.destroy(policy_set['id'], parameter['id'])
+                api_target.policy_set_params.destroy(policy_set['id'], parameter['id'])

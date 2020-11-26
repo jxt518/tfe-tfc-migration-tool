@@ -7,24 +7,7 @@ from tfc_migrate import \
             agent_pools, workspace_vars, run_triggers, state_versions, \
                 policy_set_params
 
-
-# SOURCE ORG
-TFE_TOKEN_ORIGINAL = os.getenv("TFE_TOKEN_ORIGINAL", None)
-TFE_URL_ORIGINAL = os.getenv("TFE_URL_ORIGINAL", None)
-TFE_ORG_ORIGINAL = os.getenv("TFE_ORG_ORIGINAL", None)
-
-api_source = TFC(TFE_TOKEN_ORIGINAL, url=TFE_URL_ORIGINAL)
-api_source.set_org(TFE_ORG_ORIGINAL)
-
-# NEW ORG
-TFE_TOKEN_NEW = os.getenv("TFE_TOKEN_NEW", None)
-TFE_URL_NEW = os.getenv("TFE_URL_NEW", None)
-TFE_ORG_NEW = os.getenv("TFE_ORG_NEW", None)
-TFE_VCS_CONNECTION_MAP = ast.literal_eval(os.getenv("TFE_VCS_CONNECTION_MAP", None))
-
-api_new = TFC(TFE_TOKEN_NEW, url=TFE_URL_NEW)
-api_new.set_org(TFE_ORG_NEW)
-
+# TODO: review imports like urllib / ast
 # TODO: use a logger instead of print statements
 # TODO: break into a real main function
 # TODO: break out real write functions
@@ -35,35 +18,47 @@ api_new.set_org(TFE_ORG_NEW)
 # TODO: make all functions idempotent.
 # TODO: add a flag to a main function to optionally delete everything, or to ignore existing names
 # TODO: try not to repeat the try/except blocks
+# TODO: create a base migrate class w/ a logger
+
+
+# Source Org
+TFE_TOKEN_SOURCE = os.getenv("TFE_TOKEN_SOURCE", None)
+TFE_URL_SOURCE = os.getenv("TFE_URL_SOURCE", None)
+TFE_ORG_SOURCE = os.getenv("TFE_ORG_SOURCE", None)
+
+api_source = TFC(TFE_TOKEN_SOURCE, url=TFE_URL_SOURCE)
+api_source.set_org(TFE_ORG_SOURCE)
+
+# Target Org
+TFE_TOKEN_TARGET = os.getenv("TFE_TOKEN_TARGET", None)
+TFE_URL_TARGET = os.getenv("TFE_URL_TARGET", None)
+TFE_ORG_TARGET = os.getenv("TFE_ORG_TARGET", None)
+TFE_VCS_CONNECTION_MAP = ast.literal_eval(os.getenv("TFE_VCS_CONNECTION_MAP", None))
+
+api_target = TFC(TFE_TOKEN_TARGET, url=TFE_URL_TARGET)
+api_target.set_org(TFE_ORG_TARGET)
 
 
 def write_output():
     pass
 
 
-def main():
+def migrate_to_target(api_source, api_target):
     pass
 
-"""
-def delete_all(api_new):
-    delete_workspaces(api_new)
-    print('workspaces successfully deleted')
 
-    delete_ssh_keys(api_new)
-    print('ssh keys successfully deleted')
+def delete_all(api):
+    workspaces.delete_all(api)
+    ssh_keys.delete_all_keys(api)
+    teams.delete_all_keys(api)
+    policies.delete_all_keys(api)
+    policy_sets.delete_all_keys(api)
+    modules.delete_all_keys(api)
+    # TODO: logging
 
-    delete_teams(api_new)
-    print('teams successfully deleted')
 
-    delete_policies(api_new)
-    print('policies successfully deleted')
-
-    delete_policy_sets(api_new)
-    print('policy sets successfully deleted')
-
-    delete_modules(api_new)
-    print('modules successfully deleted')
-"""
+def main(api_source, api_target):
+    pass
 
 
 if __name__ == "__main__":
@@ -74,100 +69,71 @@ if __name__ == "__main__":
     """
     write_to_file = True
 
-    print("Migrating teams...")
-    teams_map = teams.migrate(api_source, api_new)
-    print("Teams successfully migrated.")
+    teams_map = teams.migrate(api_source, api_target)
 
     # TODO: use it or remove it
     # org_membership_map = \
-    #   org_memberships.migrate(api_source, api_new, teams_map)
+    #   org_memberships.migrate(api_source, api_target, teams_map)
     # print("organization memberships successfully migrated")
 
-    print("Migrating SSH keys...")
-    ssh_keys_map, ssh_key_name_map = ssh_keys.migrate_keys(api_source, api_new)
-    print("SSH keys successfully migrated.")
+    ssh_keys_map, ssh_key_name_map = ssh_keys.migrate_keys(api_source, api_target)
 
     # TODO: use it or remove it
-    # ssh_keys.migrate_key_files(api_new, ssh_key_name_map, ssh_key_file_path_map)
-    # print("ssh key files successfully migrated")
+    # ssh_keys.migrate_key_files(api_target, ssh_key_name_map, ssh_key_file_path_map)
 
-    print("Migrating agent pools...")
-    agent_pool_id = agent_pools.migrate(api_source, api_new, TFE_ORG_ORIGINAL, TFE_ORG_NEW)
-    print("Agent pools successfully migrated.")
+    agent_pool_id = agent_pools.migrate(api_source, api_target, TFE_ORG_SOURCE, TFE_ORG_TARGET)
 
-    print("Migrating workspaces...")
     workspaces_map, workspace_to_ssh_key_map = \
-        workspaces.migrate(api_source, api_new, TFE_VCS_CONNECTION_MAP, agent_pool_id)
-    print("Workspaces successfully migrated.")
+        workspaces.migrate(api_source, api_target, TFE_VCS_CONNECTION_MAP, agent_pool_id)
 
-    print("Migrating current states...")
-    state_versions.migrate_current(api_source, api_new,
-                          TFE_ORG_ORIGINAL, workspaces_map)
-    print("Current states successfully migrated.")
+    state_versions.migrate_current(api_source, api_target, TFE_ORG_SOURCE, workspaces_map)
 
+    # TODO: right place for this note?
     """
     NOTE: if you wish to generate a map of Sensitive variables that can be used to update
     those values via the migrate_workspace_sensitive_variables method, pass True as the
     final argument (defaults to False).
     """
-    print("Migrating workspace variables...")
     # TODO: is this var name accurate?
     sensitive_variable_data = workspace_vars.migrate(
-        api_source, api_new, workspaces_map)
-    print("Workspace variables successfully migrated.")
+        api_source, api_target, workspaces_map)
 
     # TODO: doesn't this happen in the normal migrate function now?
-    # workspace_vars.migrate_sensitive(api_new, sensitive_variable_data_map)
+    # workspace_vars.migrate_sensitive(api_target, sensitive_variable_data_map)
     # print("workspace sensitive variables successfully migrated")
 
-    print("Migrating SSH keys for workspaces...")
     workspaces.migrate_ssh_keys(
-        api_source, api_new, workspaces_map, workspace_to_ssh_key_map, ssh_keys_map)
-    print("SSH keys for workspaces successfully migrated.")
+        api_source, api_target, workspaces_map, workspace_to_ssh_key_map, ssh_keys_map)
 
-    print("Migrating run triggers...")
-    run_triggers.migrate(api_source, api_new, workspaces_map)
-    print("Run triggers successfully migrated.")
+    run_triggers.migrate(api_source, api_target, workspaces_map)
 
-    print("Migrating notification configs...")
-    notification_configs.migrate(api_source, api_new, workspaces_map)
-    print("notifications successfully migrated.")
+    notification_configs.migrate(api_source, api_target, workspaces_map)
 
-    print("Migrating team access...")
-    team_access.migrate(api_source, api_new, workspaces_map, teams_map)
-    print("Team access successfully migrated.")
+    team_access.migrate(api_source, api_target, workspaces_map, teams_map)
 
-    print("Migrating config versions...")
     workspace_to_configuration_version_map = config_versions.migrate( \
-        api_source, api_new, workspaces_map)
-    print("workspace configuration versions successfully migrated.")
+        api_source, api_target, workspaces_map)
 
+    # TODO: fix logging
     # config_versions.migrate_config_files(\
-    #   api_new, workspace_to_configuration_version_map, workspace_to_file_path_map)
+    #   api_target, workspace_to_configuration_version_map, workspace_to_file_path_map)
     # print("workspace configuration files successfully migrated.")
 
-    print("Migrating policies...")
-    policies_map = policies.migrate(api_source, api_new, TFE_TOKEN_ORIGINAL, TFE_URL_ORIGINAL)
-    print("policies successfully migrated.")
+    policies_map = policies.migrate(api_source, api_target, TFE_TOKEN_SOURCE, TFE_URL_SOURCE)
 
-    print("Migrating policy sets...")
     policy_sets_map = policy_sets.migrate(\
-        api_source, api_new, TFE_VCS_CONNECTION_MAP, workspaces_map, policies_map)
-    print("Policy sets successfully migrated.")
+        api_source, api_target, TFE_VCS_CONNECTION_MAP, workspaces_map, policies_map)
 
     # NOTE: if you wish to generate a map of Sensitive policy set parameters that can be used to update
     # those values via the migrate_policy_set_sensitive_variables method, pass True as the final argument (defaults to False)
-    print("Migrating policy set parameters...")
     sensitive_policy_set_parameter_data = \
-        policy_set_params.migrate(api_source, api_new, policy_sets_map)
-    print("Policy set parameters successfully migrated.")
+        policy_set_params.migrate(api_source, api_target, policy_sets_map)
 
-    # policy_set_params.migrate_sensitive(api_new, sensitive_policy_set_parameter_data_map)
+    # TODO: what is this function
+    # policy_set_params.migrate_sensitive(api_target, sensitive_policy_set_parameter_data_map)
     # print("policy set sensitive parameters successfully migrated.")
 
-    print("Migrating registry modules...")
-    registry_modules.migrate(api_source, api_new, TFE_VCS_CONNECTION_MAP)
-    print("Registry modules successfully migrated.")
+    registry_modules.migrate(api_source, api_target, TFE_VCS_CONNECTION_MAP)
 
     # Migration Outputs
     # TODO: improve this writing logic

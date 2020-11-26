@@ -5,7 +5,9 @@ from urllib import request
 
 # TODO: catch duplicates, clean up this file, optimize
 # TODO: get rid of all state function if we aren't going to use it
-def migrate_all(api_source, api_target, tfe_org_original, workspaces_map):
+def migrate_all(api_source, api_target, TFE_ORG_SOURCE, workspaces_map):
+    # TODO: logging
+    # TODO: get rid of this function if we aren't using it
     for workspace_id in workspaces_map:
         workspace_name = api_source.workspaces.show(workspace_id=workspace_id)[
             "data"]["attributes"]["name"]
@@ -18,7 +20,7 @@ def migrate_all(api_source, api_target, tfe_org_original, workspaces_map):
             },
             {
                 "keys": ["organization", "name"],
-                "value": tfe_org_original
+                "value": TFE_ORG_SOURCE
             }
         ]
 
@@ -56,7 +58,10 @@ def migrate_all(api_source, api_target, tfe_org_original, workspaces_map):
                 api_target.workspaces.unlock(workspaces_map[workspace_id])
 
 
-def migrate_current(api_source, api_target, tfe_org_original, workspaces_map):
+def migrate_current(api_source, api_target, TFE_ORG_SOURCE, workspaces_map):
+
+    print("Migrating current state versions...")
+
     for workspace_id in workspaces_map:
         workspace_name = api_source.workspaces.show(workspace_id=workspace_id)[
             "data"]["attributes"]["name"]
@@ -69,7 +74,7 @@ def migrate_current(api_source, api_target, tfe_org_original, workspaces_map):
             },
             {
                 "keys": ["organization", "name"],
-                "value": tfe_org_original
+                "value": TFE_ORG_SOURCE
             }
         ]
 
@@ -106,3 +111,7 @@ def migrate_current(api_source, api_target, tfe_org_original, workspaces_map):
             api_target.state_versions.create(\
                 workspaces_map[workspace_id], create_state_version_payload)
             api_target.workspaces.unlock(workspaces_map[workspace_id])
+
+    print("Current state versions successfully migrated.")
+
+# TODO: delete function w logging

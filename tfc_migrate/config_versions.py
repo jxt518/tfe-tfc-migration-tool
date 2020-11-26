@@ -2,6 +2,8 @@
 
 # TODO: catch duplicates, clean up this file, optimize
 def migrate(api_source, api_target, workspaces_map):
+    print("Migrating config versions...")
+
     workspace_to_configuration_version_map = {}
 
     for workspace_id in workspaces_map:
@@ -32,6 +34,7 @@ def migrate(api_source, api_target, workspaces_map):
                 workspace_to_configuration_version_map[workspace_name] = \
                     new_configuration_version["id"]
 
+    print("Config versions successfully migrated.")
     return workspace_to_configuration_version_map
 
 
@@ -42,7 +45,10 @@ def migrate_config_files(\
         # NOTE: The workspace_to_file_path_map must be created ahead of time
         # with a format of {"workspace_name":"path/to/file"}
 
+        # TODO: logging
         # Upload the configuration file to the new workspace
         api_target.config_versions.upload(\
             workspace_to_file_path_map[workspace_name], \
                 workspace_to_configuration_version_map[workspace_name])
+
+# TODO: delete function w logging

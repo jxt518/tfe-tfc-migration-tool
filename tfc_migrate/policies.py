@@ -1,6 +1,9 @@
 from urllib import request
 
-def migrate(api_source, api_target, tfe_token_original, tfe_url_original):
+def migrate(api_source, api_target, TFE_TOKEN_SOURCE, TFE_URL_SOURCE):
+
+    print("Migrating policies...")
+
     # Pull policies from the old organization
     source_policies = api_source.policies.list()["data"]
     target_policies = api_target.policies.list()["data"]
@@ -17,11 +20,11 @@ def migrate(api_source, api_target, tfe_token_original, tfe_url_original):
             source_policy_id = source_policy["id"]
 
             headers = {
-                "Authorization": "Bearer %s" % (tfe_token_original),
+                "Authorization": "Bearer %s" % (TFE_TOKEN_SOURCE),
                 "Content-Type": "application/vnd.api+json"
             }
             policy_download_url = "%s/api/v2/policies/%s/download" % \
-                (tfe_url_original, source_policy_id)
+                (TFE_URL_SOURCE, source_policy_id)
 
             # Retrieve the policy content
             policy_request = request.Request(policy_download_url, headers=headers)
@@ -56,9 +59,13 @@ def migrate(api_source, api_target, tfe_token_original, tfe_url_original):
             # Upload the policy content to the new policy in the new organization
             api_target.policies.upload(new_policy_id, policy_b64)
 
+    print("policies successfully migrated.")
+
     return policies_map
 
+
 def delete_all(api_target):
+    # TODO: logging
     policies = api_target.policies.list()['data']
 
     if policies:

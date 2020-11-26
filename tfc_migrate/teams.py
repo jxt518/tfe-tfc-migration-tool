@@ -1,6 +1,8 @@
 
 
 def migrate(api_source, api_target):
+    print("Migrating teams...")
+
     # Fetch Teams from Existing Org
     source_teams = api_source.teams.list()["data"]
     target_teams = api_target.teams.list()["data"]
@@ -46,10 +48,13 @@ def migrate(api_source, api_target):
             # Build Team ID Map
             teams_map[team["id"]] = new_team["data"]["id"]
 
+    print("Teams successfully migrated.")
+
     return teams_map
 
 
 def delete_all(api_target):
+    # TODO: logging
     teams = api_target.teams.list()['data']
     if teams:
         for team in teams:

@@ -3,6 +3,8 @@
 # TODO: catch duplicates, clean up this file, optimize
 def migrate(api_source, api_target, workspaces_map):
 
+    print("Migrating run triggers...")
+
     for workspace_id in workspaces_map:
         workspace_filters = [
             {
@@ -37,4 +39,7 @@ def migrate(api_source, api_target, workspaces_map):
                 api_target.run_triggers.create(
                     workspaces_map[workspace_id], new_run_trigger_payload)
 
-# TODO: add a delete function
+    print("Run triggers successfully migrated.")
+
+
+# TODO: delete function w logging

@@ -1,6 +1,8 @@
 
 
 def migrate(api_source, api_target, tfe_vcs_connection_map, agent_pool_id):
+    print("Migrating workspaces...")
+
     # Fetch workspaces from existing org
     source_workspaces = api_source.workspaces.list()["data"]
     target_workspaces = api_target.workspaces.list()["data"]
@@ -71,12 +73,15 @@ def migrate(api_source, api_target, tfe_vcs_connection_map, agent_pool_id):
             # TODO
             continue
 
+    print("Workspaces successfully migrated.")
     return workspaces_map, workspace_to_ssh_key_map
 
 
 def migrate_ssh_keys(\
         api_source, api_target, workspaces_map, workspace_to_ssh_key_map, \
             ssh_keys_map):
+
+    print("Migrating SSH keys for workspaces...")
 
     if workspace_to_ssh_key_map:
         for key, value in workspace_to_ssh_key_map.items():
@@ -94,7 +99,11 @@ def migrate_ssh_keys(\
             api_target.workspaces.assign_ssh_key(\
                 workspaces_map[key], new_workspace_ssh_key_payload)
 
+    print("SSH keys for workspaces successfully migrated.")
+
+
 def delete_all(api_target):
+    # TODO: logging
     workspaces = api_target.workspaces.list()['data']
 
     if workspaces:

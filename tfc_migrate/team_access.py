@@ -2,6 +2,9 @@
 
 # TODO: catch duplicates, clean up this file, optimize
 def migrate(api_source, api_target, workspaces_map, teams_map):
+
+    print("Migrating team access...")
+
     for workspace_id in workspaces_map:
         # Set proper workspace team filters to pull team access for each workspace
         workspace_team_filters = [
@@ -84,3 +87,5 @@ def migrate(api_source, api_target, workspaces_map, teams_map):
                 except Exception:
                     # TODO
                     pass
+
+    print("Team access successfully migrated.")

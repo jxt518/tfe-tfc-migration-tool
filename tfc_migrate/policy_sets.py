@@ -11,6 +11,8 @@ def migrate(\
     target_policy_set_names = \
         [target_policy_set["attributes"]["name"] for target_policy_set in target_policy_sets]
 
+    print("Migrating policy sets...")
+
     policy_sets_map = {}
     for source_policy_set in source_policy_sets:
         source_policy_set_name = source_policy_set["attributes"]["name"]
@@ -77,14 +79,17 @@ def migrate(\
         new_policy_set = api_target.policy_sets.create(new_policy_set_payload)
         policy_sets_map[policy_set["id"]] = new_policy_set["data"]["id"]
 
+    print("Policy sets successfully migrated.")
+
     return policy_sets_map
 
 
 # TODO: handle paging
-def delete_all(api_new):
-    policy_sets = api_new.policy_sets.list(page_size=50, include="policies,workspaces")['data']
+def delete_all(api_target):
+    # TODO: logging
+    policy_sets = api_target.policy_sets.list(page_size=50, include="policies,workspaces")['data']
 
     # TODO: do these if checks return false on empty arrays?
     if policy_sets:
         for policy_set in policy_sets:
-            api_new.policy_sets.destroy(policy_set['id'])
+            api_target.policy_sets.destroy(policy_set['id'])

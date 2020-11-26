@@ -4,6 +4,9 @@
 def migrate(\
         api_source, api_target, workspaces_map, \
             return_sensitive_variable_data=True):
+
+    print("Migrating workspace variables...")
+
     sensitive_variable_data = []
     for workspace_id in workspaces_map:
         new_workspace_id = workspaces_map[workspace_id]
@@ -96,8 +99,11 @@ def migrate_sensitive(api_target, sensitive_variable_data_map):
             sensitive_variable["workspace_id"], \
                 sensitive_variable["variable_id"], update_variable_payload)
 
+    print("Workspace variables successfully migrated.")
+
 
 def delete_all(api_target):
+    # TODO: logging
     workspaces = api_target.workspaces.list()['data']
 
     for workspace in workspaces:
