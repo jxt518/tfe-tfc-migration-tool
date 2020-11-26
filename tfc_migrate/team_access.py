@@ -1,5 +1,6 @@
 
 
+# TODO: catch duplicates, clean up this file, optimize
 def migrate(api_source, api_target, workspaces_map, teams_map):
     for workspace_id in workspaces_map:
         # Set proper workspace team filters to pull team access for each workspace

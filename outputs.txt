@@ -8,7 +8,7 @@ workspaces_map: {}
 
 workspace_to_ssh_key_map: {}
 
-workspace_to_configuration_version_map: None
+workspace_to_configuration_version_map: {}
 
 policies_map: {}
 

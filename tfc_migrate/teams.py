@@ -47,3 +47,11 @@ def migrate(api_source, api_target):
             teams_map[team["id"]] = new_team["data"]["id"]
 
     return teams_map
+
+
+def delete_all(api_target):
+    teams = api_target.teams.list()['data']
+    if teams:
+        for team in teams:
+            if team['attributes']['name'] != "owners":
+                api_target.teams.destroy(team['id'])

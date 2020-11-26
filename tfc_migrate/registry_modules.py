@@ -40,3 +40,11 @@ def migrate(api_source, api_target, tfe_vcs_connection_map):
 
         # Create the module in the new organization
         api_target.registry_modules.publish_from_vcs(new_module_payload)
+
+
+def delete_all(api_target):
+    modules = api_target.registry_modules.list()['modules']
+
+    if modules:
+        for module in modules:
+            api_target.registry_modules.destroy(module['name'])

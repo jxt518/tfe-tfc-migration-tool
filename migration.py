@@ -1,10 +1,11 @@
 import os
 import ast
 from terrasnek.api import TFC
-from functions import *
 from tfc_migrate import \
     workspaces, teams, policies, policy_sets, registry_modules, \
-        ssh_keys, config_versions, notification_configs, team_access
+        ssh_keys, config_versions, notification_configs, team_access, \
+            agent_pools, workspace_vars, run_triggers, state_versions, \
+                policy_set_params
 
 
 # SOURCE ORG
@@ -27,6 +28,42 @@ api_new.set_org(TFE_ORG_NEW)
 # TODO: use a logger instead of print statements
 # TODO: break into a real main function
 # TODO: break out real write functions
+# TODO: replace "configuration" with "config"
+# TODO: replace "parameters" with "params"
+# TODO: use "source" and "target" rather than "new" and "old"
+# TODO: have these functions write their outputs to a file
+# TODO: make all functions idempotent.
+# TODO: add a flag to a main function to optionally delete everything, or to ignore existing names
+# TODO: try not to repeat the try/except blocks
+
+
+def write_output():
+    pass
+
+
+def main():
+    pass
+
+"""
+def delete_all(api_new):
+    delete_workspaces(api_new)
+    print('workspaces successfully deleted')
+
+    delete_ssh_keys(api_new)
+    print('ssh keys successfully deleted')
+
+    delete_teams(api_new)
+    print('teams successfully deleted')
+
+    delete_policies(api_new)
+    print('policies successfully deleted')
+
+    delete_policy_sets(api_new)
+    print('policy sets successfully deleted')
+
+    delete_modules(api_new)
+    print('modules successfully deleted')
+"""
 
 
 if __name__ == "__main__":
@@ -41,20 +78,21 @@ if __name__ == "__main__":
     teams_map = teams.migrate(api_source, api_new)
     print("Teams successfully migrated.")
 
+    # TODO: use it or remove it
     # org_membership_map = \
-    #   migrate_org_memberships(api_source, api_new, teams_map)
+    #   org_memberships.migrate(api_source, api_new, teams_map)
     # print("organization memberships successfully migrated")
 
     print("Migrating SSH keys...")
     ssh_keys_map, ssh_key_name_map = ssh_keys.migrate_keys(api_source, api_new)
     print("SSH keys successfully migrated.")
 
-    # migrate_ssh_key_files(api_new, ssh_key_name_map, ssh_key_file_path_map)
+    # TODO: use it or remove it
+    # ssh_keys.migrate_key_files(api_new, ssh_key_name_map, ssh_key_file_path_map)
     # print("ssh key files successfully migrated")
 
     print("Migrating agent pools...")
-    agent_pool_id = migrate_agent_pools(
-        api_source, api_new, TFE_ORG_ORIGINAL, TFE_ORG_NEW)
+    agent_pool_id = agent_pools.migrate(api_source, api_new, TFE_ORG_ORIGINAL, TFE_ORG_NEW)
     print("Agent pools successfully migrated.")
 
     print("Migrating workspaces...")
@@ -62,9 +100,8 @@ if __name__ == "__main__":
         workspaces.migrate(api_source, api_new, TFE_VCS_CONNECTION_MAP, agent_pool_id)
     print("Workspaces successfully migrated.")
 
-    # migrate_all_state(api_source, api_new, TFE_ORG_ORIGINAL, workspaces_map)
     print("Migrating current states...")
-    migrate_current_state(api_source, api_new,
+    state_versions.migrate_current(api_source, api_new,
                           TFE_ORG_ORIGINAL, workspaces_map)
     print("Current states successfully migrated.")
 
@@ -75,20 +112,21 @@ if __name__ == "__main__":
     """
     print("Migrating workspace variables...")
     # TODO: is this var name accurate?
-    sensitive_variable_data = migrate_workspace_variables(
+    sensitive_variable_data = workspace_vars.migrate(
         api_source, api_new, workspaces_map)
     print("Workspace variables successfully migrated.")
 
-    # migrate_workspace_sensitive_variables(api_new, sensitive_variable_data_map)
+    # TODO: doesn't this happen in the normal migrate function now?
+    # workspace_vars.migrate_sensitive(api_new, sensitive_variable_data_map)
     # print("workspace sensitive variables successfully migrated")
 
     print("Migrating SSH keys for workspaces...")
-    migrate_ssh_keys_to_workspaces(
+    workspaces.migrate_ssh_keys(
         api_source, api_new, workspaces_map, workspace_to_ssh_key_map, ssh_keys_map)
     print("SSH keys for workspaces successfully migrated.")
 
     print("Migrating run triggers...")
-    migrate_workspace_run_triggers(api_source, api_new, workspaces_map)
+    run_triggers.migrate(api_source, api_new, workspaces_map)
     print("Run triggers successfully migrated.")
 
     print("Migrating notification configs...")
@@ -104,13 +142,12 @@ if __name__ == "__main__":
         api_source, api_new, workspaces_map)
     print("workspace configuration versions successfully migrated.")
 
-    # migrate_configuration_files(\
+    # config_versions.migrate_config_files(\
     #   api_new, workspace_to_configuration_version_map, workspace_to_file_path_map)
     # print("workspace configuration files successfully migrated.")
 
     print("Migrating policies...")
-    policies_map = policies.migrate(
-        api_source, api_new, TFE_TOKEN_ORIGINAL, TFE_URL_ORIGINAL)
+    policies_map = policies.migrate(api_source, api_new, TFE_TOKEN_ORIGINAL, TFE_URL_ORIGINAL)
     print("policies successfully migrated.")
 
     print("Migrating policy sets...")
@@ -121,11 +158,11 @@ if __name__ == "__main__":
     # NOTE: if you wish to generate a map of Sensitive policy set parameters that can be used to update
     # those values via the migrate_policy_set_sensitive_variables method, pass True as the final argument (defaults to False)
     print("Migrating policy set parameters...")
-    sensitive_policy_set_parameter_data = migrate_policy_set_parameters(
-        api_source, api_new, policy_sets_map)
+    sensitive_policy_set_parameter_data = \
+        policy_set_params.migrate(api_source, api_new, policy_sets_map)
     print("Policy set parameters successfully migrated.")
 
-    # migrate_policy_set_sensitive_parameters(api_new, sensitive_policy_set_parameter_data_map)
+    # policy_set_params.migrate_sensitive(api_new, sensitive_policy_set_parameter_data_map)
     # print("policy set sensitive parameters successfully migrated.")
 
     print("Migrating registry modules...")

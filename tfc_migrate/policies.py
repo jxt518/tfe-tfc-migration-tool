@@ -1,4 +1,4 @@
-
+from urllib import request
 
 def migrate(api_source, api_target, tfe_token_original, tfe_url_original):
     # Pull policies from the old organization
@@ -24,8 +24,8 @@ def migrate(api_source, api_target, tfe_token_original, tfe_url_original):
                 (tfe_url_original, source_policy_id)
 
             # Retrieve the policy content
-            policy_request = urllib.request.Request(policy_download_url, headers=headers)
-            pull_policy = urllib.request.urlopen(policy_request)
+            policy_request = request.Request(policy_download_url, headers=headers)
+            pull_policy = request.urlopen(policy_request)
             policy_data = pull_policy.read()
             policy_b64 = policy_data.decode("utf-8")
 
@@ -57,3 +57,10 @@ def migrate(api_source, api_target, tfe_token_original, tfe_url_original):
             api_target.policies.upload(new_policy_id, policy_b64)
 
     return policies_map
+
+def delete_all(api_target):
+    policies = api_target.policies.list()['data']
+
+    if policies:
+        for policy in policies:
+            api_target.policies.destroy(policy['id'])

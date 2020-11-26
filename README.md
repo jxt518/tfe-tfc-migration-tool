@@ -34,14 +34,17 @@ This tool is designed to help automate the migration from one TFE/C Organization
     * Note: Only VCS-backed Module migration is supported currently
 
 
+
 ## STEPS:
+
 ### 1. Install the Python Dependencies
-```
+
+```bash
 pip3 install terrasnek==0.0.11
 ```
 
 ### 2. Set Required Environment Variables for both the Source Org and the New Org
-```
+```bash
 # SOURCE ORG
 TFE_TOKEN_ORIGINAL = os.getenv("TFE_TOKEN_ORIGINAL", None)
 TFE_URL_ORIGINAL = os.getenv("TFE_URL_ORIGINAL", None)
@@ -59,6 +62,7 @@ TFE_VCS_CONNECTION_MAP = ast.literal_eval(os.getenv("TFE_VCS_CONNECTION_MAP", No
 api_new = TFC(TFE_TOKEN_NEW, url=TFE_URL_NEW)
 api_new.set_org(TFE_ORG_NEW)
 ```
+
 Note:
 * The Token(s) used above must be either a Team or User Token and have the appropriate level of permissions
 * The URL(s) used above must follow a format of `https://app.terraform.io`
@@ -78,5 +82,7 @@ python migration.py
 This migration utility leverages the [Terraform Cloud/Enterprise API](https://www.terraform.io/docs/cloud/api/index.html) and the [terrasnek](https://github.com/dahlke/terrasnek) Python Client for interacting with it.  For security reasons, there are certain Sensitive values that cannot be extracted (ex. Sensitive Variables, Sensitive Policy Set Parameters, and SSH Keys), so those will need to be re-added after the migration is complete (the Keys will, however, be migrated).  For convenience, additional methods have been included to enable Sensitive value migration (Sensitive Variables, Sensitive Policy Set Parameters, and SSH Keys).
 
 **IMPORTANT:** These scripts expect that the destination Organization (i.e TFE_ORG_NEW) is a blank slate and has not had any changes made ahead of time through other means.  If changes have been made to the new Organization prior to using this tool, errors are likely to occur.
+
+# TODO: review this for the new workflow
 
 If needed (ex. for testing purposes), a set of helper delete functions have been included as well in [`delete_functions.py`](delete_functions.py).

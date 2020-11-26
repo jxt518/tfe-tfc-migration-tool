@@ -78,3 +78,13 @@ def migrate(\
         policy_sets_map[policy_set["id"]] = new_policy_set["data"]["id"]
 
     return policy_sets_map
+
+
+# TODO: handle paging
+def delete_all(api_new):
+    policy_sets = api_new.policy_sets.list(page_size=50, include="policies,workspaces")['data']
+
+    # TODO: do these if checks return false on empty arrays?
+    if policy_sets:
+        for policy_set in policy_sets:
+            api_new.policy_sets.destroy(policy_set['id'])

@@ -72,3 +72,31 @@ def migrate(api_source, api_target, tfe_vcs_connection_map, agent_pool_id):
             continue
 
     return workspaces_map, workspace_to_ssh_key_map
+
+
+def migrate_ssh_keys(\
+        api_source, api_target, workspaces_map, workspace_to_ssh_key_map, \
+            ssh_keys_map):
+
+    if workspace_to_ssh_key_map:
+        for key, value in workspace_to_ssh_key_map.items():
+            # Build the new ssh key payload
+            new_workspace_ssh_key_payload = {
+                "data": {
+                    "attributes": {
+                        "id": ssh_keys_map[value]
+                    },
+                    "type": "workspaces"
+                }
+            }
+
+            # Add SSH Keys to the new Workspace
+            api_target.workspaces.assign_ssh_key(\
+                workspaces_map[key], new_workspace_ssh_key_payload)
+
+def delete_all(api_target):
+    workspaces = api_target.workspaces.list()['data']
+
+    if workspaces:
+        for workspace in workspaces:
+            api_target.workspaces.destroy(workspace['id'])

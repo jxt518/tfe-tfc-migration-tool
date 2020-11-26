@@ -1,5 +1,7 @@
 
 
+# TODO: catch duplicates, clean up this file, optimize
+# TODO: is this different than the workspace_notifications file?
 def migrate(api_source, api_target, workspaces_map):
     for workspace_id in workspaces_map:
         # Pull notifications from the old workspace
@@ -48,4 +50,15 @@ def migrate(api_source, api_target, workspaces_map):
                     # Add notifications to the new workspace
                     api_target.notification_configs.create(\
                         workspaces_map[workspace_id], new_notification_payload)
+
+
+def delete_all(api_target):
+    workspaces = api_target.workspaces.list()['data']
+
+    for workspace in workspaces:
+        notifications = api_target.notification_configs.list(workspace['id'])['data']
+
+        if notifications:
+            for notification in notifications:
+                api_target.notification_configs.destroy(notification['id'])
 

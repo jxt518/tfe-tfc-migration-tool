@@ -1,5 +1,6 @@
 
 
+# TODO: catch duplicates, clean up this file, optimize
 def migrate_keys(api_source, api_target):
     # Fetch SSH Keys from Existing Org
     # NOTE: This does not fetch the Keys themselves
@@ -24,8 +25,8 @@ def migrate_keys(api_source, api_target):
             # NOTE: The actual Keys themselves must be added separately afterward
             new_ssh_key = api_target.ssh_keys.create(new_ssh_key_payload)["data"]
             ssh_keys_map[ssh_key["id"]] = new_ssh_key["id"]
-            ssh_key_name_map[new_ssh_key["attributes"]
-                             ["name"]] = new_ssh_key["id"]
+            ssh_key_name_map[new_ssh_key["attributes"]["name"]] = \
+                new_ssh_key["id"]
 
     return ssh_keys_map, ssh_key_name_map
 
@@ -53,3 +54,10 @@ def migrate_key_files(api_target, ssh_key_name_map, ssh_key_file_path_map):
 
         # Upload the SSH key file to the new organization
         api_target.ssh_keys.update(ssh_key_name_map[ssh_key], new_ssh_key_file_payload)
+
+
+def delete_all_keys(api_target):
+    ssh_keys = api_target.ssh_keys.list()["data"]
+    if ssh_keys:
+        for ssh_key in ssh_keys:
+            api_target.ssh_keys.destroy(ssh_key['id'])
