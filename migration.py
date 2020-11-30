@@ -151,13 +151,20 @@ def migrate_to_target(api_source, api_target, write_to_file):
 
 
 def delete_all_from_target(api):
+    # Deleting workspaces allows us to skip deleting notification configs,
+    # config_versions, state_versions, workspace_vars.
     workspaces.delete_all(api)
-    # ssh_keys.delete_all_keys(api)
-    # teams.delete_all_keys(api)
-    # policies.delete_all_keys(api)
-    # policy_sets.delete_all_keys(api)
-    # modules.delete_all_keys(api)
-    # TODO: logging
+
+    # No need to delete the key files, they get deleted as well.
+    ssh_keys.delete_all_keys(api)
+
+    teams.delete_all(api)
+
+    # Delete all the policy sets before deleting the individual policies
+    policy_sets.delete_all(api)
+    policies.delete_all(api)
+
+    registry_modules.delete_all(api)
 
 
 def main(api_source, api_target, write_to_file, delete_all):
@@ -185,36 +192,3 @@ if __name__ == "__main__":
     api_target.set_org(TFE_ORG_TARGET)
 
     main(api_source, api_target, args.write_output, args.delete_all)
-
-    """
-    # Migration Outputs
-    # TODO: improve this writing logic
-    # TODO: write each to it's own file.
-    if write_to_file:
-    else:
-        print("\n")
-        print("MIGRATION MAPS:")
-        print("teams_map:", teams_map)
-        print("\n")
-        # print("org_membership_map:", org_membership_map)
-        # print("\n")
-        print("ssh_keys_map:", ssh_keys_map)
-        print("\n")
-        print("ssh_keys_name_map:", ssh_key_name_map)
-        print("\n")
-        print("workspaces_map:", workspaces_map)
-        print("\n")
-        print("workspace_to_ssh_key_map:", workspace_to_ssh_key_map)
-        print("\n")
-        print("workspace_to_configuration_version_map:",
-            workspace_to_configuration_version_map)
-        print("\n")
-        print("policies_map:", policies_map)
-        print("\n")
-        print("policy_sets_map:", policy_sets_map)
-        print("\n")
-        print("sensitive_policy_set_parameter_data:",
-            sensitive_policy_set_parameter_data)
-        print("\n")
-        print("sensitive_variable_data:", sensitive_variable_data)
-    """

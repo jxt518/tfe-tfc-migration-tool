@@ -65,9 +65,12 @@ def migrate(api_source, api_target, TFE_TOKEN_SOURCE, TFE_URL_SOURCE):
 
 
 def delete_all(api_target):
-    # TODO: logging
+    print("Deleting policies...")
+
     policies = api_target.policies.list()['data']
 
     if policies:
         for policy in policies:
             api_target.policies.destroy(policy['id'])
+
+    print("Policies deleted.")

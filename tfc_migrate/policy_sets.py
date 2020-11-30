@@ -86,10 +86,13 @@ def migrate(\
 
 # TODO: handle paging
 def delete_all(api_target):
-    # TODO: logging
+    print("Deleting policy sets...")
+
     policy_sets = api_target.policy_sets.list(page_size=50, include="policies,workspaces")['data']
 
     # TODO: do these if checks return false on empty arrays?
     if policy_sets:
         for policy_set in policy_sets:
             api_target.policy_sets.destroy(policy_set['id'])
+
+    print("Policy sets deleted.")

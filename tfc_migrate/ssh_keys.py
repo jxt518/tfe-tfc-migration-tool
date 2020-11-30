@@ -65,9 +65,11 @@ def migrate_key_files(api_target, ssh_key_name_map, ssh_key_file_path_map):
 
 
 def delete_all_keys(api_target):
-    # TODO: logging
+    print("Deleting SSH keys...")
 
     ssh_keys = api_target.ssh_keys.list()["data"]
     if ssh_keys:
         for ssh_key in ssh_keys:
             api_target.ssh_keys.destroy(ssh_key['id'])
+
+    print("SSH keys deleted.")
