@@ -81,10 +81,10 @@ if __name__ == "__main__":
     # TODO: use it or remove it
     # ssh_keys.migrate_key_files(api_target, ssh_key_name_map, ssh_key_file_path_map)
 
-    agent_pool_id = agent_pools.migrate(api_source, api_target, TFE_ORG_SOURCE, TFE_ORG_TARGET)
+    agent_pools_map = agent_pools.migrate(api_source, api_target, TFE_ORG_SOURCE, TFE_ORG_TARGET, TFE_URL_TARGET)
 
     workspaces_map, workspace_to_ssh_key_map = \
-        workspaces.migrate(api_source, api_target, TFE_VCS_CONNECTION_MAP, agent_pool_id)
+        workspaces.migrate(api_source, api_target, TFE_VCS_CONNECTION_MAP, agent_pools_map, TFE_URL_TARGET)
 
     state_versions.migrate_current(api_source, api_target, TFE_ORG_SOURCE, workspaces_map)
 

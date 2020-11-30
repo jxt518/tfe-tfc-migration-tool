@@ -1,20 +1,25 @@
 
 
-def migrate(api_source, api_target, tfe_vcs_connection_map, agent_pool_id):
+def migrate(api_source, api_target, tfe_vcs_connection_map, agent_pools_map, TFE_URL_TARGET):
     print("Migrating workspaces...")
 
     # Fetch workspaces from existing org
     source_workspaces = api_source.workspaces.list()["data"]
     target_workspaces = api_target.workspaces.list()["data"]
-    target_workspace_names = \
-        [target_workspaces["attributes"]["name"] for target_workspaces in target_workspaces]
+    
+    target_workspaces_data = {}
+    for target_workspace in target_workspaces:
+        target_workspaces_data[target_workspace["attributes"]["name"]] = target_workspace["id"]
+
     workspaces_map = {}
     workspace_to_ssh_key_map = {}
 
     for source_workspace in source_workspaces:
         source_workspace_name = source_workspace["attributes"]["name"]
+        source_workspace_id = source_workspace["id"]
 
-        if source_workspace_name in target_workspace_names:
+        if source_workspace_name in target_workspaces_data:
+            workspaces_map[source_workspace_id] = target_workspaces_data[source_workspace_name]
             print("\t", source_workspace_name, "workspace already exists, skipping...")
             continue
 
@@ -38,7 +43,7 @@ def migrate(api_source, api_target, tfe_vcs_connection_map, agent_pool_id):
                     "auto-apply": source_workspace["attributes"]["auto-apply"],
                     "execution-mode": source_workspace["attributes"]["execution-mode"],
                     "description": source_workspace["attributes"]["description"],
-                    "source-name": source_workspace["attributes"]["source-name"],
+                    "source-name": source_workspace["attributes"]["source-name"], 
                     "source-url": source_workspace["attributes"]["source-url"],
                     "queue-all-runs": source_workspace["attributes"]["queue-all-runs"],
                     "speculative-enabled": source_workspace["attributes"]["speculative-enabled"],
@@ -48,11 +53,12 @@ def migrate(api_source, api_target, tfe_vcs_connection_map, agent_pool_id):
             }
         }
 
-        if source_workspace["attributes"]["execution-mode"] == "agent":
-            new_workspace_payload["agent-pool-id"] = agent_pool_id
+        # Set agent pool ID unless target is TFE
+        if source_workspace["attributes"]["execution-mode"] == "agent" and 'app.terraform.io' in TFE_URL_TARGET:
+            new_workspace_payload["data"]["attributes"]["agent-pool-id"] = agent_pools_map[source_workspace["relationships"]["agent-pool"]["data"]["id"]]
 
         if source_workspace["attributes"]["vcs-repo"] is not None:
-            new_workspace_payload["vcs-repo"] = {
+            new_workspace_payload["data"]["attributes"]["vcs-repo"] = {
                 "identifier": source_workspace["attributes"]["vcs-repo-identifier"],
                 "oauth-token-id": tfe_vcs_connection_map\
                     [source_workspace["attributes"]["vcs-repo"]["oauth-token-id"]],
