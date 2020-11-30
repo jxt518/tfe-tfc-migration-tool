@@ -1,5 +1,6 @@
 # TFC/E Migration Tool
 
+
 This tool is designed to help automate the migration from one TFE/C Organization to another, whether that’s TFE to TFC, or vice versa.  The following migration operations are currently supported:
 
 * Migrate Teams
@@ -37,6 +38,8 @@ This tool is designed to help automate the migration from one TFE/C Organization
 ## Steps
 
 ### 1. Install the Python Dependencies
+
+TODO:  verify that all these steps can be copy pasted.
 
 ```bash
 pip3 install terrasnek==0.0.11
