@@ -1,5 +1,6 @@
 import os
 import ast
+import argparse
 from terrasnek.api import TFC
 from tfc_migrate import \
     workspaces, teams, policies, policy_sets, registry_modules, \
@@ -149,19 +150,21 @@ def migrate_to_target(api_source, api_target, write_to_file):
                         sensitive_variable_data)
 
 
-def delete_all(api):
+def delete_all_from_target(api):
     workspaces.delete_all(api)
-    ssh_keys.delete_all_keys(api)
-    teams.delete_all_keys(api)
-    policies.delete_all_keys(api)
-    policy_sets.delete_all_keys(api)
-    modules.delete_all_keys(api)
+    # ssh_keys.delete_all_keys(api)
+    # teams.delete_all_keys(api)
+    # policies.delete_all_keys(api)
+    # policy_sets.delete_all_keys(api)
+    # modules.delete_all_keys(api)
     # TODO: logging
 
 
-def main(api_source, api_target, write_to_file):
-    migrate_to_target(api_source, api_target, write_to_file)
-    # TODO: add the delete logic
+def main(api_source, api_target, write_to_file, delete_all):
+    if delete_all:
+        delete_all_from_target(api_target)
+    else:
+        migrate_to_target(api_source, api_target, write_to_file)
 
 
 if __name__ == "__main__":
@@ -170,9 +173,10 @@ if __name__ == "__main__":
     If you prefer to have these outputs in the terminal,
     set the write_to_file parameter to False
     """
-
-    # TODO: take this as an env var
-    write_to_file = True
+    parser = argparse.ArgumentParser(description='Migrate from TFE/C to TFE/C.')
+    parser.add_argument('--write-output', dest="write_output", action="store_true", help="Write output to a file.")
+    parser.add_argument('--delete-all', dest="delete_all", action="store_true", help="Delete all resources from the target API.")
+    args = parser.parse_args()
 
     api_source = TFC(TFE_TOKEN_SOURCE, url=TFE_URL_SOURCE)
     api_source.set_org(TFE_ORG_SOURCE)
@@ -180,8 +184,7 @@ if __name__ == "__main__":
     api_target = TFC(TFE_TOKEN_TARGET, url=TFE_URL_TARGET)
     api_target.set_org(TFE_ORG_TARGET)
 
-    main(api_source, api_target, write_to_file)
-
+    main(api_source, api_target, args.write_output, args.delete_all)
 
     """
     # Migration Outputs
