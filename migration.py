@@ -10,13 +10,12 @@ from tfc_migrate import \
 
 # TODO: review imports like urllib / ast
 # TODO: use a logger instead of print statements
-# TODO: replace "configuration" with "config"
-# TODO: replace "parameters" with "params"
-# TODO: have these functions write their outputs to a file
-# TODO: make all functions idempotent.
-# TODO: add a flag to a main function to optionally delete everything, or to ignore existing names
+# TODO: have each module handle it's own output writes
+# TODO: confirm all functions are idempotent
 # TODO: try not to repeat the try/except blocks
+# TODO: logging should have tabs to be more readable
 # TODO: create a base migrate class w/ a logger
+# TODO: clean up TFE_VCS_CONNECTION_MAP
 
 
 # Source Org
@@ -33,7 +32,7 @@ TFE_VCS_CONNECTION_MAP = ast.literal_eval(os.getenv("TFE_VCS_CONNECTION_MAP", No
 
 def print_output(\
     teams_map, ssh_keys_map, ssh_key_name_map, workspaces_map, \
-        workspace_to_ssh_key_map, workspace_to_configuration_version_map, \
+        workspace_to_ssh_key_map, workspace_to_config_version_map, \
             policies_map, policy_sets_map, sensitive_policy_set_parameter_data, \
                 sensitive_variable_data):
     lines = [
@@ -43,7 +42,7 @@ def print_output(\
         "ssh_key_name_map: %s\n\n" % ssh_key_name_map,
         "workspaces_map: %s\n\n" % workspaces_map,
         "workspace_to_ssh_key_map: %s\n\n" % workspace_to_ssh_key_map,
-        "workspace_to_configuration_version_map: %s\n\n" % workspace_to_configuration_version_map,
+        "workspace_to_config_version_map: %s\n\n" % workspace_to_config_version_map,
         "policies_map: %s\n\n" % policies_map,
         "policy_sets_map: %s\n\n" % policy_sets_map,
         "sensitive_policy_set_parameter_data: %s\n\n" % sensitive_policy_set_parameter_data,
@@ -56,7 +55,7 @@ def print_output(\
 
 def write_output(\
     teams_map, ssh_keys_map, ssh_key_name_map, workspaces_map, \
-        workspace_to_ssh_key_map, workspace_to_configuration_version_map, \
+        workspace_to_ssh_key_map, workspace_to_config_version_map, \
             policies_map, policy_sets_map, sensitive_policy_set_parameter_data, \
                 sensitive_variable_data):
 
@@ -66,34 +65,36 @@ def write_output(\
             "ssh_key_name_map: %s\n\n" % ssh_key_name_map,
             "workspaces_map: %s\n\n" % workspaces_map,
             "workspace_to_ssh_key_map: %s\n\n" % workspace_to_ssh_key_map,
-            "workspace_to_configuration_version_map: %s\n\n" % workspace_to_configuration_version_map,
+            "workspace_to_config_version_map: %s\n\n" % workspace_to_config_version_map,
             "policies_map: %s\n\n" % policies_map,
             "policy_sets_map: %s\n\n" % policy_sets_map,
             "sensitive_policy_set_parameter_data: %s\n\n" % sensitive_policy_set_parameter_data,
             "sensitive_variable_data: %s\n\n" % sensitive_variable_data
         ]
 
-    with open("outputs.txt", "w") as f:
-        f.write("".join(lines))
+        with open("outputs.txt", "w") as f:
+            f.write("".join(lines))
 
 
 def migrate_to_target(api_source, api_target, write_to_file):
     teams_map = teams.migrate(api_source, api_target)
+
+    # TODO: use it or remove it
     # TODO: org_membership_map = org_memberships.migrate(api_source, api_target, teams_map)
+
     ssh_keys_map, ssh_key_name_map = ssh_keys.migrate_keys(api_source, api_target)
+
+    agent_pools_map = agent_pools.migrate(api_source, api_target)
+
+    workspaces_map, workspace_to_ssh_key_map = \
+        workspaces.migrate(api_source, api_target, TFE_VCS_CONNECTION_MAP, agent_pools_map)
 
     # TODO: use it or remove it
     # ssh_keys.migrate_key_files(api_target, ssh_key_name_map, ssh_key_file_path_map)
 
-    agent_pools_map = agent_pools.migrate(api_source, api_target, TFE_ORG_SOURCE, TFE_ORG_TARGET, TFE_URL_TARGET)
-
     workspaces_map, workspace_to_ssh_key_map = \
-        workspaces.migrate(api_source, api_target, TFE_VCS_CONNECTION_MAP, agent_pools_map, TFE_URL_TARGET)
+        workspaces.migrate(api_source, api_target, TFE_VCS_CONNECTION_MAP, agent_pools_map)
 
-    # TODO: ssh_keys.migrate_key_files(api_target, ssh_key_name_map, ssh_key_file_path_map)
-    agent_pool_id = agent_pools.migrate(api_source, api_target, TFE_ORG_SOURCE, TFE_ORG_TARGET)
-    workspaces_map, workspace_to_ssh_key_map = \
-        workspaces.migrate(api_source, api_target, TFE_VCS_CONNECTION_MAP, agent_pool_id)
     state_versions.migrate_current(api_source, api_target, TFE_ORG_SOURCE, workspaces_map)
 
     """
@@ -108,7 +109,6 @@ def migrate_to_target(api_source, api_target, write_to_file):
 
     # TODO: doesn't this happen in the normal migrate function now?
     # workspace_vars.migrate_sensitive(api_target, sensitive_variable_data_map)
-    # print("workspace sensitive variables successfully migrated")
 
     workspaces.migrate_ssh_keys(
         api_source, api_target, workspaces_map, workspace_to_ssh_key_map, ssh_keys_map)
@@ -119,38 +119,36 @@ def migrate_to_target(api_source, api_target, write_to_file):
 
     team_access.migrate(api_source, api_target, workspaces_map, teams_map)
 
-    workspace_to_configuration_version_map = config_versions.migrate( \
+    workspace_to_config_version_map = config_versions.migrate( \
         api_source, api_target, workspaces_map)
 
     # TODO: fix logging
     # config_versions.migrate_config_files(\
-    #   api_target, workspace_to_configuration_version_map, workspace_to_file_path_map)
-    # print("workspace configuration files successfully migrated.")
+    #   api_target, workspace_to_config_version_map, workspace_to_file_path_map)
 
     policies_map = policies.migrate(api_source, api_target, TFE_TOKEN_SOURCE, TFE_URL_SOURCE)
 
     policy_sets_map = policy_sets.migrate(\
         api_source, api_target, TFE_VCS_CONNECTION_MAP, workspaces_map, policies_map)
 
-    # NOTE: if you wish to generate a map of Sensitive policy set parameters that can be used to update
+    # NOTE: if you wish to generate a map of Sensitive policy set params that can be used to update
     # those values via the migrate_policy_set_sensitive_variables method, pass True as the final argument (defaults to False)
     sensitive_policy_set_parameter_data = \
         policy_set_params.migrate(api_source, api_target, policy_sets_map)
 
     # TODO: what is this function
     # policy_set_params.migrate_sensitive(api_target, sensitive_policy_set_parameter_data_map)
-    # print("policy set sensitive parameters successfully migrated.")
 
     registry_modules.migrate(api_source, api_target, TFE_VCS_CONNECTION_MAP)
 
     if write_to_file:
         write_output(teams_map, ssh_keys_map, ssh_key_name_map, workspaces_map, \
-                workspace_to_ssh_key_map, workspace_to_configuration_version_map, \
+                workspace_to_ssh_key_map, workspace_to_config_version_map, \
                     policies_map, policy_sets_map, sensitive_policy_set_parameter_data, \
                         sensitive_variable_data)
     else:
         print_output(teams_map, ssh_keys_map, ssh_key_name_map, workspaces_map, \
-                workspace_to_ssh_key_map, workspace_to_configuration_version_map, \
+                workspace_to_ssh_key_map, workspace_to_config_version_map, \
                     policies_map, policy_sets_map, sensitive_policy_set_parameter_data, \
                         sensitive_variable_data)
 
@@ -172,6 +170,8 @@ def delete_all_from_target(api):
     policies.delete_all(api)
 
     registry_modules.delete_all(api)
+
+    agent_pools.delete_all(api)
 
 
 def main(api_source, api_target, write_to_file, delete_all):

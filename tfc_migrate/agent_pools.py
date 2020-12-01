@@ -1,7 +1,7 @@
 
 
 # TODO: clean up this file, optimize
-def migrate(api_source, api_target, TFE_ORG_SOURCE, TFE_ORG_TARGET, TFE_URL_TARGET):
+def migrate(api_source, api_target):
     print("Migrating agent pools...")
 
     # Fetch agent pools from existing org
@@ -9,7 +9,8 @@ def migrate(api_source, api_target, TFE_ORG_SOURCE, TFE_ORG_TARGET, TFE_URL_TARG
     target_agent_pools = api_target.agents.list_pools()["data"]
     agent_pools_map = {}
 
-    if source_agent_pools and 'app.terraform.io' in TFE_URL_TARGET:
+    # NOTE: probably shouldn't be getting the "private" propery from the api_target
+    if source_agent_pools and 'app.terraform.io' in api_target._instance_url:
         target_agent_pool_data = {}
         for target_agent_pool in target_agent_pools:
             target_agent_pool_data[target_agent_pool["attributes"]["name"]] = target_agent_pool["id"]
@@ -26,7 +27,7 @@ def migrate(api_source, api_target, TFE_ORG_SOURCE, TFE_ORG_TARGET, TFE_URL_TARG
         # Build the new agent pool payload
         new_agent_pool_payload = {
             "data": {
-                "type": "agent-pools"
+                "type": "agent-pools",
                 "attributes": {
                     "name": source_agent_pool_name
                 }
@@ -41,10 +42,13 @@ def migrate(api_source, api_target, TFE_ORG_SOURCE, TFE_ORG_TARGET, TFE_URL_TARG
     print("Agent pools successfully migrated.")
     return agent_pools_map
 
-# TODO: logging
 def delete_all(api_target):
+    print("Deleting agent pools...")
+
     agent_pools = api_target.agents.list_pools()["data"]
 
     if agent_pools:
         for agent_pool in agent_pools:
             api_target.destroy(agent_pool["id"])
+
+    print("Agent pools deleted. ")

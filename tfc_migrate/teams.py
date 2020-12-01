@@ -6,8 +6,6 @@ def migrate(api_source, api_target):
     # Fetch Teams from Existing Org
     source_teams = api_source.teams.list()["data"]
     target_teams = api_target.teams.list()["data"]
-    target_team_names = \
-        [target_team["attributes"]["name"] for target_team in target_teams]
 
     # TODO: not sure we can always assume the owners org will be the first in the array.
     # At the very least it"s not prudent, but it"s likely to introduce issues down the line.
@@ -16,8 +14,16 @@ def migrate(api_source, api_target):
     teams_map = {}
     for source_team in source_teams:
         source_team_name = source_team["attributes"]["name"]
-        if source_team_name in target_team_names:
-            print("\t", source_team_name, "team already exists, skipping...")
+
+        found_team = False
+        for target_team in target_teams:
+            if source_team_name == target_team["attributes"]["name"]:
+                print("\t", source_team_name, "team already exists, skipping...")
+                teams_map[source_team["id"]] = target_team["id"]
+                found_team = True
+                continue
+
+        if found_team:
             continue
 
         if source_team_name == "owners":
@@ -46,7 +52,7 @@ def migrate(api_source, api_target):
             new_team = api_target.teams.create(new_team_payload)
 
             # Build Team ID Map
-            teams_map[team["id"]] = new_team["data"]["id"]
+            teams_map[source_team["id"]] = new_team["data"]["id"]
 
     print("Teams successfully migrated.")
 
@@ -60,6 +66,7 @@ def delete_all(api_target):
     if teams:
         for team in teams:
             if team['attributes']['name'] != "owners":
+                # TODO: indentation
                 api_target.teams.destroy(team['id'])
 
     print("Teams deleted.")

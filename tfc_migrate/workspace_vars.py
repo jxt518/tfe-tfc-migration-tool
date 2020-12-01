@@ -1,6 +1,5 @@
 
 
-# TODO: catch duplicates, clean up this file, optimize
 def migrate(\
         api_source, api_target, workspaces_map, \
             return_sensitive_variable_data=True):
@@ -103,7 +102,7 @@ def migrate_sensitive(api_target, sensitive_variable_data_map):
 
 
 def delete_all(api_target):
-    # TODO: logging
+    # TODO: logging - and do we even want this function if it gets deleted with the workspaces?
     workspaces = api_target.workspaces.list()['data']
 
     for workspace in workspaces:

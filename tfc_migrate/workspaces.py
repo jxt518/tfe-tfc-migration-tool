@@ -1,6 +1,6 @@
 
 
-def migrate(api_source, api_target, tfe_vcs_connection_map, agent_pools_map, TFE_URL_TARGET):
+def migrate(api_source, api_target, tfe_vcs_connection_map, agent_pools_map):
     print("Migrating workspaces...")
 
     # Fetch workspaces from existing org
@@ -54,7 +54,8 @@ def migrate(api_source, api_target, tfe_vcs_connection_map, agent_pools_map, TFE
         }
 
         # Set agent pool ID unless target is TFE
-        if source_workspace["attributes"]["execution-mode"] == "agent" and 'app.terraform.io' in TFE_URL_TARGET:
+        # NOTE: probably shouldn't be getting the "private" propery from the api_target
+        if source_workspace["attributes"]["execution-mode"] == "agent" and 'app.terraform.io' in api_target._instance_url:
             new_workspace_payload["data"]["attributes"]["agent-pool-id"] = agent_pools_map[source_workspace["relationships"]["agent-pool"]["data"]["id"]]
 
         if source_workspace["attributes"]["vcs-repo"] is not None:
@@ -70,11 +71,11 @@ def migrate(api_source, api_target, tfe_vcs_connection_map, agent_pools_map, TFE
         # Build the new workspace
         new_workspace = api_target.workspaces.create(new_workspace_payload)
         new_workspace_id = new_workspace["data"]["id"]
-        workspaces_map[workspace["id"]] = new_workspace_id
+        workspaces_map[source_workspace["id"]] = new_workspace_id
 
         try:
-            ssh_key = workspace["relationships"]["ssh-key"]["data"]["id"]
-            workspace_to_ssh_key_map[workspace["id"]] = ssh_key
+            ssh_key = source_workspace["relationships"]["ssh-key"]["data"]["id"]
+            workspace_to_ssh_key_map[source_workspace["id"]] = ssh_key
         except:
             # TODO
             continue

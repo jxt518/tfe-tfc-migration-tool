@@ -3,7 +3,7 @@
 def migrate(\
     api_source, api_target, policy_sets_map, return_sensitive_variable_data=True):
 
-    print("Migrating policy set parameters...")
+    print("Migrating policy set params...")
 
     sensitive_policy_set_parameter_data = []
 
@@ -55,7 +55,7 @@ def migrate(\
 
                     sensitive_policy_set_parameter_data.append(parameter_data)
 
-    print("Policy set parameters successfully migrated.")
+    print("Policy set params successfully migrated.")
 
     return sensitive_policy_set_parameter_data
 
@@ -96,6 +96,6 @@ def delete_all(api_target):
 
     if policy_sets:
         for policy_set in policy_sets:
-            parameters = api_target.policy_set_params.list(policy_set['id'])['data']
-            for parameter in parameters:
+            params = api_target.policy_set_params.list(policy_set['id'])['data']
+            for parameter in params:
                 api_target.policy_set_params.destroy(policy_set['id'], parameter['id'])
