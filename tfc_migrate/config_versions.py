@@ -1,6 +1,5 @@
 
 
-# TODO: catch duplicates, clean up this file, optimize
 def migrate(api_source, api_target, workspaces_map):
     print("Migrating config versions...")
 
@@ -50,5 +49,3 @@ def migrate_config_files(\
         api_target.config_versions.upload(\
             workspace_to_file_path_map[workspace_name], \
                 workspace_to_config_version_map[workspace_name])
-
-# TODO: delete function w logging

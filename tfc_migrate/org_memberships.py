@@ -34,10 +34,12 @@ def migrate(api_source, api_target, teams_map):
             }
         }
 
+        # TODO: what is this really doing?
         try:
             new_org_member = api_target.org_memberships.invite( \
                 new_user_invite_payload)["data"]
         except:
+            # TODO: handle this more explicitly
             org_membership_map[org_member["relationships"]["user"]["data"]["id"]] = \
                 org_member["relationships"]["user"]["data"]["id"]
 

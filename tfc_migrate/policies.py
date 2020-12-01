@@ -1,6 +1,6 @@
 from urllib import request
 
-def migrate(api_source, api_target, TFE_TOKEN_SOURCE, TFE_URL_SOURCE):
+def migrate(api_source, api_target, TFE_TOKEN_SOURCE):
 
     print("Migrating policies...")
 
@@ -30,8 +30,9 @@ def migrate(api_source, api_target, TFE_TOKEN_SOURCE, TFE_URL_SOURCE):
                 "Authorization": "Bearer %s" % (TFE_TOKEN_SOURCE),
                 "Content-Type": "application/vnd.api+json"
             }
+            # NOTE: probably shouldn't be getting the "private" property from the api_source
             policy_download_url = "%s/api/v2/policies/%s/download" % \
-                (TFE_URL_SOURCE, source_policy_id)
+                (api_source._instance_url, source_policy_id)
 
             # Retrieve the policy content
             policy_request = request.Request(policy_download_url, headers=headers)

@@ -54,7 +54,7 @@ def migrate(api_source, api_target, tfe_vcs_connection_map, agent_pools_map):
         }
 
         # Set agent pool ID unless target is TFE
-        # NOTE: probably shouldn't be getting the "private" propery from the api_target
+        # NOTE: probably shouldn't be getting the "private" property from the api_target
         if source_workspace["attributes"]["execution-mode"] == "agent" and 'app.terraform.io' in api_target._instance_url:
             new_workspace_payload["data"]["attributes"]["agent-pool-id"] = agent_pools_map[source_workspace["relationships"]["agent-pool"]["data"]["id"]]
 
@@ -70,7 +70,7 @@ def migrate(api_source, api_target, tfe_vcs_connection_map, agent_pools_map):
 
         # Build the new workspace
         new_workspace = api_target.workspaces.create(new_workspace_payload)
-        print(f"\t Workspace %s created...", source_workspace_name)
+        print(f"\t Workspace %s created..." % source_workspace_name)
 
         new_workspace_id = new_workspace["data"]["id"]
         workspaces_map[source_workspace["id"]] = new_workspace_id
@@ -80,7 +80,7 @@ def migrate(api_source, api_target, tfe_vcs_connection_map, agent_pools_map):
             workspace_to_ssh_key_map[source_workspace["id"]] = ssh_key
         except:
             # TODO: catch a real exception - what to do here?
-            pass
+            continue
 
     print("Workspaces successfully migrated.")
     return workspaces_map, workspace_to_ssh_key_map

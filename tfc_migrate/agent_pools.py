@@ -1,6 +1,5 @@
 
 
-# TODO: clean up this file, optimize
 def migrate(api_source, api_target):
     print("Migrating agent pools...")
 
@@ -9,7 +8,7 @@ def migrate(api_source, api_target):
     target_agent_pools = api_target.agents.list_pools()["data"]
     agent_pools_map = {}
 
-    # NOTE: probably shouldn't be getting the "private" propery from the api_target
+    # NOTE: probably shouldn't be getting the "private" property from the api_target
     if source_agent_pools and 'app.terraform.io' in api_target._instance_url:
         target_agent_pool_data = {}
         for target_agent_pool in target_agent_pools:
@@ -49,6 +48,7 @@ def delete_all(api_target):
 
     if agent_pools:
         for agent_pool in agent_pools:
+            print(f"\t deleting agent pool %s..." % agent_pool["attributes"]["name"])
             api_target.destroy(agent_pool["id"])
 
     print("Agent pools deleted. ")

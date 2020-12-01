@@ -3,16 +3,15 @@ import hashlib
 import json
 from urllib import request
 
-# TODO: catch duplicates, clean up this file, optimize
 # TODO: get rid of all state function if we aren't going to use it
-def migrate_all(api_source, api_target, TFE_ORG_SOURCE, workspaces_map):
+def migrate_all(api_source, api_target, workspaces_map):
     # TODO: logging
     # TODO: get rid of this function if we aren't using it
     for workspace_id in workspaces_map:
-        workspace_name = api_source.workspaces.show(workspace_id=workspace_id)[
-            "data"]["attributes"]["name"]
+        workspace_name = api_source.workspaces.show(workspace_id=workspace_id)\
+            ["data"]["attributes"]["name"]
 
-        # Set proper state filters to pull state versions for each workspace
+        # NOTE: probably shouldn't be getting the "private" property from the api_target
         state_filters = [
             {
                 "keys": ["workspace", "name"],
@@ -20,13 +19,13 @@ def migrate_all(api_source, api_target, TFE_ORG_SOURCE, workspaces_map):
             },
             {
                 "keys": ["organization", "name"],
-                "value": TFE_ORG_SOURCE
+                "value": api_target._instance_url
             }
         ]
 
-        state_versions = api_source.state_versions.list(
-            filters=state_filters)["data"]
+        state_versions = api_source.state_versions.list(filters=state_filters)["data"]
         if state_versions:
+            # TODO: why is this reversed?
             for state_version in reversed(state_versions):
                 state_url = state_version["attributes"]["hosted-state-download-url"]
                 pull_state = request.urlopen(state_url)
@@ -58,15 +57,15 @@ def migrate_all(api_source, api_target, TFE_ORG_SOURCE, workspaces_map):
                 api_target.workspaces.unlock(workspaces_map[workspace_id])
 
 
-def migrate_current(api_source, api_target, TFE_ORG_SOURCE, workspaces_map):
-
+def migrate_current(api_source, api_target, workspaces_map):
     print("Migrating current state versions...")
 
     for workspace_id in workspaces_map:
-        workspace_name = api_source.workspaces.show(workspace_id=workspace_id)[
-            "data"]["attributes"]["name"]
+        workspace_name = api_source.workspaces.show(workspace_id=workspace_id)\
+            ["data"]["attributes"]["name"]
 
         # Set proper state filters to pull state versions for each workspace
+        # NOTE: probably shouldn't be getting the "private" property from the api_source
         state_filters = [
             {
                 "keys": ["workspace", "name"],
@@ -74,12 +73,11 @@ def migrate_current(api_source, api_target, TFE_ORG_SOURCE, workspaces_map):
             },
             {
                 "keys": ["organization", "name"],
-                "value": TFE_ORG_SOURCE
+                "value": api_source._current_org
             }
         ]
 
-        state_versions = api_source.state_versions.list(
-            filters=state_filters)["data"]
+        state_versions = api_source.state_versions.list(filters=state_filters)["data"]
         if state_versions:
             current_version = api_source.state_versions.get_current(workspace_id)[
                 "data"]
@@ -113,5 +111,3 @@ def migrate_current(api_source, api_target, TFE_ORG_SOURCE, workspaces_map):
             api_target.workspaces.unlock(workspaces_map[workspace_id])
 
     print("Current state versions successfully migrated.")
-
-# TODO: delete function w logging

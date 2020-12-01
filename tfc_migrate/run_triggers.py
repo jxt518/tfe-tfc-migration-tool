@@ -40,6 +40,3 @@ def migrate(api_source, api_target, workspaces_map):
                     workspaces_map[workspace_id], new_run_trigger_payload)
 
     print("Run triggers successfully migrated.")
-
-
-# TODO: delete function w logging

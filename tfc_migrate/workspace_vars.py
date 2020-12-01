@@ -71,6 +71,7 @@ def migrate(\
     return sensitive_variable_data
 
 
+# TODO: what is the purpose of this function? Can it be removed?
 def migrate_sensitive(api_target, sensitive_variable_data_map):
     """
     NOTE: The sensitive_variable_data_map map must be created ahead of time. The easiest way to
@@ -101,13 +102,3 @@ def migrate_sensitive(api_target, sensitive_variable_data_map):
                 sensitive_variable["variable_id"], update_variable_payload)
 
     print("Workspace variables successfully migrated.")
-
-
-def delete_all(api_target):
-    # TODO: logging - and do we even want this function if it gets deleted with the workspaces?
-    workspaces = api_target.workspaces.list()['data']
-
-    for workspace in workspaces:
-        variables = api_target.workspace_vars.list(workspace['id'])['data']
-        for variable in variables:
-            api_target.workspace_vars.destroy(workspace['id'], variable['id'] )
