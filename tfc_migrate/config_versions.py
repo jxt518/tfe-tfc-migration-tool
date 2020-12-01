@@ -28,7 +28,7 @@ def migrate(api_source, api_target, workspaces_map):
                     }
                 }
 
-                # Create a configuration version in the new organization
+                # Create a configuration version in the target organization
                 new_configuration_version = api_target.config_versions.create(\
                     workspaces_map[workspace_id], new_configuration_version_payload)["data"]
                 workspace_to_configuration_version_map[workspace_name] = \
@@ -46,7 +46,7 @@ def migrate_config_files(\
         # with a format of {"workspace_name":"path/to/file"}
 
         # TODO: logging
-        # Upload the configuration file to the new workspace
+        # Upload the configuration file to the target workspace
         api_target.config_versions.upload(\
             workspace_to_file_path_map[workspace_name], \
                 workspace_to_configuration_version_map[workspace_name])

@@ -75,7 +75,7 @@ def migrate(\
                     "data": workspace_ids
                 }
 
-        # Create the policy set in the new organization
+        # Create the policy set in the target organization
         new_policy_set = api_target.policy_sets.create(new_policy_set_payload)
         policy_sets_map[policy_set["id"]] = new_policy_set["data"]["id"]
 

@@ -19,7 +19,7 @@ def migrate(api_source, api_target, teams_map):
         for team in org_member["relationships"]["teams"]["data"]:
             team["id"] = teams_map[team["id"]]
 
-        # Build the new User invite payload
+        # Build the new user invite payload
         new_user_invite_payload = {
             "data": {
                 "attributes": {

@@ -12,7 +12,7 @@ def migrate_keys(api_source, api_target):
     ssh_key_name_map = {}
     if ssh_keys:
         for ssh_key in reversed(ssh_keys):
-            # Build the new Agent Pool Payload
+            # Build the new agent pool payload
             new_ssh_key_payload = {
                 "data": {
                     "type": "ssh-keys",
@@ -23,7 +23,7 @@ def migrate_keys(api_source, api_target):
                 }
             }
 
-            # Create SSH Key in New Org
+            # Create SSH Key in the target org
             # NOTE: The actual Keys themselves must be added separately afterward
             new_ssh_key = api_target.ssh_keys.create(new_ssh_key_payload)["data"]
             ssh_keys_map[ssh_key["id"]] = new_ssh_key["id"]
@@ -58,7 +58,7 @@ def migrate_key_files(api_target, ssh_key_name_map, ssh_key_file_path_map):
             }
         }
 
-        # Upload the SSH key file to the new organization
+        # Upload the SSH key file to the target organization
         api_target.ssh_keys.update(ssh_key_name_map[ssh_key], new_ssh_key_file_payload)
 
     print("SSH key files successfully migrated.")

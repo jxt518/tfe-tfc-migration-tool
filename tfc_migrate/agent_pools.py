@@ -12,17 +12,17 @@ def migrate(api_source, api_target, TFE_ORG_SOURCE, TFE_ORG_TARGET, TFE_URL_TARG
     if source_agent_pools and 'app.terraform.io' in TFE_URL_TARGET:
         target_agent_pool_data = {}
         for target_agent_pool in target_agent_pools:
-            target_agent_pool_data[target_agent_pool["attributes"]["name"]] = target_agent_pool["id"]    
+            target_agent_pool_data[target_agent_pool["attributes"]["name"]] = target_agent_pool["id"]
 
         for source_agent_pool in source_agent_pools:
             source_agent_pool_name = source_agent_pool["attributes"]["name"]
             source_agent_pool_id = source_agent_pool["id"]
-        
+
             if source_agent_pool_name in target_agent_pool_data:
                 agent_pools_map[source_agent_pool_id] = target_agent_pool_data[source_agent_pool_name]
                 print("\t", source_agent_pool_name, "agent pool already exists, skipping...")
                 continue
-        
+
         # Build the new agent pool payload
         new_agent_pool_payload = {
             "data": {
@@ -33,7 +33,7 @@ def migrate(api_source, api_target, TFE_ORG_SOURCE, TFE_ORG_TARGET, TFE_URL_TARG
             }
         }
 
-        # Create Agent Pool in New Org
+        # Create Agent Pool in the target org
         new_agent_pool = api_target.agents.create_pool(new_agent_pool_payload)
         new_agent_pool_id = new_agent_pool["data"]["id"]
         agent_pools_map[source_agent_pool_id] = new_agent_pool_id

@@ -35,7 +35,7 @@ def migrate(api_source, api_target, workspaces_map):
                     }
                 }
 
-                # Add Run Triggers to the new Workspace
+                # Add Run Triggers to the target Workspace
                 api_target.run_triggers.create(
                     workspaces_map[workspace_id], new_run_trigger_payload)
 

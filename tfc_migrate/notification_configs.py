@@ -30,7 +30,7 @@ def migrate(api_source, api_target, workspaces_map):
                         }
                     }
 
-                    # Add notifications to the new workspace
+                    # Add notifications to the target workspace
                     api_target.notification_configs.create(
                         workspaces_map[workspace_id], new_notification_payload)
                 else:
@@ -49,7 +49,7 @@ def migrate(api_source, api_target, workspaces_map):
                         }
                     }
 
-                    # Add notifications to the new workspace
+                    # Add notifications to the target workspace
                     api_target.notification_configs.create(\
                         workspaces_map[workspace_id], new_notification_payload)
 

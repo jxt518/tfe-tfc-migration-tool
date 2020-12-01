@@ -6,7 +6,7 @@ def migrate(api_source, api_target, tfe_vcs_connection_map, agent_pools_map, TFE
     # Fetch workspaces from existing org
     source_workspaces = api_source.workspaces.list()["data"]
     target_workspaces = api_target.workspaces.list()["data"]
-    
+
     target_workspaces_data = {}
     for target_workspace in target_workspaces:
         target_workspaces_data[target_workspace["attributes"]["name"]] = target_workspace["id"]
@@ -43,7 +43,7 @@ def migrate(api_source, api_target, tfe_vcs_connection_map, agent_pools_map, TFE
                     "auto-apply": source_workspace["attributes"]["auto-apply"],
                     "execution-mode": source_workspace["attributes"]["execution-mode"],
                     "description": source_workspace["attributes"]["description"],
-                    "source-name": source_workspace["attributes"]["source-name"], 
+                    "source-name": source_workspace["attributes"]["source-name"],
                     "source-url": source_workspace["attributes"]["source-url"],
                     "queue-all-runs": source_workspace["attributes"]["queue-all-runs"],
                     "speculative-enabled": source_workspace["attributes"]["speculative-enabled"],
@@ -101,7 +101,7 @@ def migrate_ssh_keys(\
                 }
             }
 
-            # Add SSH Keys to the new Workspace
+            # Add SSH Keys to the target Workspace
             api_target.workspaces.assign_ssh_key(\
                 workspaces_map[key], new_workspace_ssh_key_payload)
 

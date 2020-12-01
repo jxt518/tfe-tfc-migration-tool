@@ -41,7 +41,7 @@ def migrate(api_source, api_target, tfe_vcs_connection_map):
             }
         }
 
-        # Create the module in the new organization
+        # Create the module in the target organization
         api_target.registry_modules.publish_from_vcs(new_module_payload)
 
     print("Registry modules successfully migrated.")

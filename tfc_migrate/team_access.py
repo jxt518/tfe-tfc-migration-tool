@@ -50,7 +50,7 @@ def migrate(api_source, api_target, workspaces_map, teams_map):
                 }
 
                 try:
-                    # Create the Team Workspace Access map for the new Workspace
+                    # Create the Team Workspace Access map for the target workspace
                     api_target.team_access.add_team_access(new_workspace_team_payload)
                 except Exception as err:
                     # TODO
@@ -82,7 +82,7 @@ def migrate(api_source, api_target, workspaces_map, teams_map):
                 }
 
                 try:
-                    # Create the Team Workspace Access map for the new Workspace
+                    # Create the Team Workspace Access map for the target workspace
                     api_target.team_access.add_team_access(new_workspace_team_payload)
                 except Exception:
                     # TODO

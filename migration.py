@@ -12,7 +12,6 @@ from tfc_migrate import \
 # TODO: use a logger instead of print statements
 # TODO: replace "configuration" with "config"
 # TODO: replace "parameters" with "params"
-# TODO: use "source" and "target" rather than "new" and "old"
 # TODO: have these functions write their outputs to a file
 # TODO: make all functions idempotent.
 # TODO: add a flag to a main function to optionally delete everything, or to ignore existing names

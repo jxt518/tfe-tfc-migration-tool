@@ -50,7 +50,7 @@ def migrate_all(api_source, api_target, TFE_ORG_SOURCE, workspaces_map):
                     }
                 }
 
-                # Migrate state to the new Workspace
+                # Migrate state to the target workspace
                 api_target.workspaces.lock(workspaces_map[workspace_id], {
                                         "reason": "migration script"})
                 api_target.state_versions.create(
@@ -105,7 +105,7 @@ def migrate_current(api_source, api_target, TFE_ORG_SOURCE, workspaces_map):
                 }
             }
 
-            # Migrate state to the new workspace
+            # Migrate state to the target workspace
             api_target.workspaces.lock(\
                 workspaces_map[workspace_id], {"reason": "migration script"})
             api_target.state_versions.create(\

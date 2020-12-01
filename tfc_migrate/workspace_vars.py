@@ -14,7 +14,7 @@ def migrate(\
         # Pull variables from the old workspace
         workspace_vars = api_source.workspace_vars.list(workspace_id)["data"]
 
-        # Get the variables that may already exist in the new workspace from a previous run
+        # Get the variables that may already exist in the target workspace from a previous run
         existing_workspace_vars = api_target.workspace_vars.list(new_workspace_id)["data"]
         existing_variable_names = [var["attributes"]["key"] for var in existing_workspace_vars]
 
@@ -45,7 +45,7 @@ def migrate(\
                     }
                 }
 
-                # Migrate variables to the new Workspace
+                # Migrate variables to the target Workspace
                 new_variable = api_target.workspace_vars.create(
                     new_workspace_id, new_variable_payload)["data"]
                 new_variable_id = new_variable["id"]
@@ -94,7 +94,7 @@ def migrate_sensitive(api_target, sensitive_variable_data_map):
             }
         }
 
-        # Update the sensitive variable value in the new workspace
+        # Update the sensitive variable value in the target workspace
         api_target.workspace_vars.update(
             sensitive_variable["workspace_id"], \
                 sensitive_variable["variable_id"], update_variable_payload)

@@ -34,7 +34,7 @@ def migrate(\
                     }
                 }
 
-                # Create the policy set parameter in the new organization
+                # Create the policy set parameter in the target organization
                 new_parameter = api_target.policy_set_params.create(
                     new_policy_set_id, new_policy_parameter_payload)["data"]
                 new_parameter_id = new_parameter["id"]

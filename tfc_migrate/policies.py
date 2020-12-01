@@ -51,12 +51,12 @@ def migrate(api_source, api_target, TFE_TOKEN_SOURCE, TFE_URL_SOURCE):
 
             new_policy_id = None
 
-            # Create the policy in the new organization
+            # Create the policy in the target organization
             new_policy = api_target.policies.create(new_policy_payload)
             new_policy_id = new_policy["data"]["id"]
             policies_map[policy_id] = new_policy_id
 
-            # Upload the policy content to the new policy in the new organization
+            # Upload the policy content to the target policy in the target organization
             api_target.policies.upload(new_policy_id, policy_b64)
 
     print("policies successfully migrated.")
