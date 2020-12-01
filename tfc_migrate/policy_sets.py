@@ -98,6 +98,7 @@ def delete_all(api_target):
     # TODO: do these if checks return false on empty arrays?
     if policy_sets:
         for policy_set in policy_sets:
+            print(f"\t deleting policy set %s..." % policy_set["attributes"]["name"])
             api_target.policy_sets.destroy(policy_set['id'])
 
     print("Policy sets deleted.")

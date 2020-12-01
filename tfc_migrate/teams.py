@@ -63,8 +63,9 @@ def delete_all(api_target):
     teams = api_target.teams.list()['data']
     if teams:
         for team in teams:
-            if team['attributes']['name'] != "owners":
-                # TODO: indentation
+            team_name = team["attributes"]["name"]
+            if team_name != "owners":
+                print(f"\t deleting team %s..." % team_name)
                 api_target.teams.destroy(team['id'])
 
     print("Teams deleted.")

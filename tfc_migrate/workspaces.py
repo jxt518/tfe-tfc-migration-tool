@@ -70,6 +70,8 @@ def migrate(api_source, api_target, tfe_vcs_connection_map, agent_pools_map):
 
         # Build the new workspace
         new_workspace = api_target.workspaces.create(new_workspace_payload)
+        print(f"\t Workspace %s created...", source_workspace_name)
+
         new_workspace_id = new_workspace["data"]["id"]
         workspaces_map[source_workspace["id"]] = new_workspace_id
 
@@ -77,7 +79,7 @@ def migrate(api_source, api_target, tfe_vcs_connection_map, agent_pools_map):
             ssh_key = source_workspace["relationships"]["ssh-key"]["data"]["id"]
             workspace_to_ssh_key_map[source_workspace["id"]] = ssh_key
         except:
-            # TODO
+            # TODO: catch a real exception - what to do here?
             pass
 
     print("Workspaces successfully migrated.")
@@ -116,6 +118,7 @@ def delete_all(api_target):
 
     if workspaces:
         for workspace in workspaces:
+            print(f"\t deleting workspace %s..." % workspace["attributes"]["name"])
             api_target.workspaces.destroy(workspace['id'])
 
     print("Workspaces deleted.")

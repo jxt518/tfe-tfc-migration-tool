@@ -70,6 +70,7 @@ def delete_all_keys(api_target):
     ssh_keys = api_target.ssh_keys.list()["data"]
     if ssh_keys:
         for ssh_key in ssh_keys:
+            print(f"\t deleting SSH key %s..." % ssh_key["attributes"]["name"])
             api_target.ssh_keys.destroy(ssh_key['id'])
 
     print("SSH keys deleted.")

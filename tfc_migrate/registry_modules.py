@@ -54,6 +54,7 @@ def delete_all(api_target):
 
     if modules:
         for module in modules:
+            print(f"\t deleting registry_module %s..." % module["name"])
             api_target.registry_modules.destroy(module['name'])
 
     print("Registry modules deleted.")

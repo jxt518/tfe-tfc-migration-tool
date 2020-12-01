@@ -66,6 +66,8 @@ def migrate(\
                     }
 
                     sensitive_variable_data.append(variable_data)
+
+    # TODO: make sure these values are always included even if we skip
     return sensitive_variable_data
 
 

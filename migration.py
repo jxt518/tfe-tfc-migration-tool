@@ -9,6 +9,7 @@ from tfc_migrate import \
                 policy_set_params
 
 # TODO: review imports like urllib / ast
+# TODO: convert all string formating to f format
 # TODO: make sure the source api has all of the resources that we migrate.
 # TODO: use a logger instead of print statements
 # TODO: have each module handle it's own output writes
@@ -167,7 +168,8 @@ def delete_all_from_target(api):
 
     teams.delete_all(api)
 
-    # Delete all the policy sets before deleting the individual policies
+    # Delete all the policy sets before deleting the individual policies.
+    # No need to delete policy set params since we delete the entire set.
     policy_sets.delete_all(api)
     policies.delete_all(api)
 
