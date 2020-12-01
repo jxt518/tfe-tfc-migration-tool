@@ -1,6 +1,6 @@
 # TFC/E Migration Tool
 
-This tool is designed to help automate the migration from one TFE/l Organization to another, whether that’s TFE to TFC, or vice versa.
+This tool is designed to help automate the migration from one TFE/C Organization to another, whether that’s TFE to TFC, or vice versa.
 
 ## Steps
 

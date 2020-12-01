@@ -1,6 +1,6 @@
 import os
-import ast
 import argparse
+import json
 from terrasnek.api import TFC
 from tfc_migrate import \
     workspaces, teams, policies, policy_sets, registry_modules, \
@@ -31,8 +31,8 @@ TFE_TOKEN_TARGET = os.getenv("TFE_TOKEN_TARGET", None)
 TFE_URL_TARGET = os.getenv("TFE_URL_TARGET", None)
 TFE_ORG_TARGET = os.getenv("TFE_ORG_TARGET", None)
 
-# TODO: read this from a file instead of env
-TFE_VCS_CONNECTION_MAP = ast.literal_eval(os.getenv("TFE_VCS_CONNECTION_MAP", None))
+with open("vcs.example.json", "r") as f:
+    TFE_VCS_CONNECTION_MAP = json.loads(f.read())
 
 def confirm_delete_resource_type(resource_type):
     answer = ""
