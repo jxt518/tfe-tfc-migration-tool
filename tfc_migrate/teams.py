@@ -7,6 +7,10 @@ def migrate(api_source, api_target):
     source_teams = api_source.teams.list()["data"]
     target_teams = api_target.teams.list()["data"]
 
+    target_teams_data = {}
+    for target_team in target_teams:
+        target_teams_data[target_team["attributes"]["name"]] = target_team["id"]
+
     # TODO: not sure we can always assume the owners org will be the first in the array.
     # At the very least it"s not prudent, but it"s likely to introduce issues down the line.
     new_org_owners_team_id = source_teams[0]["id"]
@@ -15,15 +19,9 @@ def migrate(api_source, api_target):
     for source_team in source_teams:
         source_team_name = source_team["attributes"]["name"]
 
-        found_team = False
-        for target_team in target_teams:
-            if source_team_name == target_team["attributes"]["name"]:
-                print("\t", source_team_name, "team already exists, skipping...")
-                teams_map[source_team["id"]] = target_team["id"]
-                found_team = True
-                continue
-
-        if found_team:
+        if source_team_name in target_teams_data:
+            teams_map[source_team["id"]] = target_teams_data[source_team_name]
+            print("\t", source_team_name, "team already exists, skipping...")
             continue
 
         if source_team_name == "owners":

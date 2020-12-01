@@ -78,7 +78,7 @@ def migrate(api_source, api_target, tfe_vcs_connection_map, agent_pools_map):
             workspace_to_ssh_key_map[source_workspace["id"]] = ssh_key
         except:
             # TODO
-            continue
+            pass
 
     print("Workspaces successfully migrated.")
     return workspaces_map, workspace_to_ssh_key_map

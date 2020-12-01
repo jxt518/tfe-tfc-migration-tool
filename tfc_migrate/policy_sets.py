@@ -11,13 +11,18 @@ def migrate(\
     target_policy_set_names = \
         [target_policy_set["attributes"]["name"] for target_policy_set in target_policy_sets]
 
+    target_policy_sets_data = {}
+    for target_policy_set in target_policy_sets:
+        target_policy_sets_data[target_policy_set["attributes"]["name"]] = target_policy_set["id"]
+
     print("Migrating policy sets...")
 
     policy_sets_map = {}
     for source_policy_set in source_policy_sets:
         source_policy_set_name = source_policy_set["attributes"]["name"]
 
-        if source_policy_set_name in target_policy_set_names:
+        if source_policy_set_name in target_policy_sets_data:
+            policies_map[source_policy_set["id"]] = target_policy_sets_data[source_policy_set_name]
             print("\t", source_policy_set_name, "policy set already exists, skipping...")
             continue
 

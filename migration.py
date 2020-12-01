@@ -9,6 +9,7 @@ from tfc_migrate import \
                 policy_set_params
 
 # TODO: review imports like urllib / ast
+# TODO: make sure the source api has all of the resources that we migrate.
 # TODO: use a logger instead of print statements
 # TODO: have each module handle it's own output writes
 # TODO: confirm all functions are idempotent
@@ -16,6 +17,7 @@ from tfc_migrate import \
 # TODO: logging should have tabs to be more readable
 # TODO: create a base migrate class w/ a logger
 # TODO: clean up TFE_VCS_CONNECTION_MAP
+# TODO: remove the TFE_* from all migrate functino calls, retrieve that information from the API object itself.
 
 
 # Source Org
