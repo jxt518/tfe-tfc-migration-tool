@@ -82,6 +82,15 @@ def migrate_to_target(api_source, api_target, write_to_file):
     teams_map = teams.migrate(api_source, api_target)
     # TODO: org_membership_map = org_memberships.migrate(api_source, api_target, teams_map)
     ssh_keys_map, ssh_key_name_map = ssh_keys.migrate_keys(api_source, api_target)
+
+    # TODO: use it or remove it
+    # ssh_keys.migrate_key_files(api_target, ssh_key_name_map, ssh_key_file_path_map)
+
+    agent_pools_map = agent_pools.migrate(api_source, api_target, TFE_ORG_SOURCE, TFE_ORG_TARGET, TFE_URL_TARGET)
+
+    workspaces_map, workspace_to_ssh_key_map = \
+        workspaces.migrate(api_source, api_target, TFE_VCS_CONNECTION_MAP, agent_pools_map, TFE_URL_TARGET)
+
     # TODO: ssh_keys.migrate_key_files(api_target, ssh_key_name_map, ssh_key_file_path_map)
     agent_pool_id = agent_pools.migrate(api_source, api_target, TFE_ORG_SOURCE, TFE_ORG_TARGET)
     workspaces_map, workspace_to_ssh_key_map = \
