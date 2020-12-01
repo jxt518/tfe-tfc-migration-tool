@@ -54,9 +54,12 @@ def migrate(api_source, api_target):
 
 
 def delete_all(api_target):
-    # TODO: logging
+    print("Deleting teams...")
+
     teams = api_target.teams.list()['data']
     if teams:
         for team in teams:
             if team['attributes']['name'] != "owners":
                 api_target.teams.destroy(team['id'])
+
+    print("Teams deleted.")

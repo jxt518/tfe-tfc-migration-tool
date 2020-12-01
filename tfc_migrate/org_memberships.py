@@ -2,6 +2,8 @@
 
 # TODO: catch duplicates, clean up this file, optimize
 def migrate(api_source, api_target, teams_map):
+    print("Migrating org memberships...")
+
     org_membership_map = {}
     # Set proper membership filters
     member_filters = [
@@ -42,6 +44,8 @@ def migrate(api_source, api_target, teams_map):
         new_user_id = new_org_member["relationships"]["user"]["data"]["id"]
         org_membership_map[org_member["relationships"]["user"]["data"]["id"]] = \
             new_user_id
+
+    print("Org memberships migrated.")
 
     return org_membership_map
 

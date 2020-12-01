@@ -48,9 +48,12 @@ def migrate(api_source, api_target, tfe_vcs_connection_map):
 
 
 def delete_all(api_target):
-    # TODO: logging
+    print("Deleting registry modules...")
+
     modules = api_target.registry_modules.list()['modules']
 
     if modules:
         for module in modules:
             api_target.registry_modules.destroy(module['name'])
+
+    print("Registry modules deleted.")

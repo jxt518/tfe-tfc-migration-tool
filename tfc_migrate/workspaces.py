@@ -109,9 +109,12 @@ def migrate_ssh_keys(\
 
 
 def delete_all(api_target):
-    # TODO: logging
+    print("Deleting workspaces...")
+
     workspaces = api_target.workspaces.list()['data']
 
     if workspaces:
         for workspace in workspaces:
             api_target.workspaces.destroy(workspace['id'])
+
+    print("Workspaces deleted.")
