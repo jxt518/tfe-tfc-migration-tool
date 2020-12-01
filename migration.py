@@ -12,12 +12,13 @@ from tfc_migrate import \
 # TODO: determine which of the unused functions we can delete, otherwise implement them properly
 # TODO: the maps that are output need to be more explicit and not just rely on key-value
 # TODO: similarly, clean up TFE_VCS_CONNECTION_MAP
+# TODO: Create a class that funs all the migrate calls as sub functions, w/ a logger
 # TODO: remove the TFE_* from all migrate function calls, retrieve that information from the API object itself.
 # TODO: Create a TF config file that will create all the resources that are needed to test a migration
 # TODO: use a logger instead of print statements
-# TODO: confirm all functions are idempotent
+# TODO: double check all functions that need to be are idempotent
+# TODO: double check all modules that need to, have delete functions
 # TODO: logging should have tabs to be more readable
-# TODO: create a base migrate class w/ a logger
 
 
 # Source Org
@@ -29,16 +30,22 @@ TFE_ORG_SOURCE = os.getenv("TFE_ORG_SOURCE", None)
 TFE_TOKEN_TARGET = os.getenv("TFE_TOKEN_TARGET", None)
 TFE_URL_TARGET = os.getenv("TFE_URL_TARGET", None)
 TFE_ORG_TARGET = os.getenv("TFE_ORG_TARGET", None)
+
+# TODO: read this from a file instead of env
 TFE_VCS_CONNECTION_MAP = ast.literal_eval(os.getenv("TFE_VCS_CONNECTION_MAP", None))
 
-def confirm_delete(target_resource_type_str):
+
+def confirm_delete_resource_type(resource_type):
     answer = ""
+
     while answer not in ["y", "n"]:
         # TODO: add target url and org
         question_string = \
-            "This will destroy all %s. Are you sure you want to continue? [Y/N]: " % target_resource_type_str
+            "This will destroy all %s. Are you sure you want to continue? [Y/N]: " % resource_type
         answer = input(question_string).lower()
+
     return answer == "y"
+
 
 def handle_output(\
     teams_map, ssh_keys_map, ssh_key_name_map, workspaces_map, \
@@ -134,28 +141,28 @@ def migrate_to_target(api_source, api_target, write_to_file):
 def delete_all_from_target(api, no_confirmation):
     # Deleting workspaces allows us to skip deleting notification configs,
     # config_versions, run_triggers, state_versions, workspace_vars.
-    if no_confirmation or confirm_delete("workspaces"):
+    if no_confirmation or confirm_delete_resource_type("workspaces"):
         workspaces.delete_all(api)
 
     # No need to delete the key files, they get deleted as well.
-    if no_confirmation or confirm_delete("SSH keys"):
+    if no_confirmation or confirm_delete_resource_type("SSH keys"):
         ssh_keys.delete_all_keys(api)
 
-    if no_confirmation or confirm_delete("teams"):
+    if no_confirmation or confirm_delete_resource_type("teams"):
         teams.delete_all(api)
 
     # Delete all the policy sets before deleting the individual policies.
     # No need to delete policy set params since we delete the entire set.
-    if no_confirmation or confirm_delete("policy sets"):
+    if no_confirmation or confirm_delete_resource_type("policy sets"):
         policy_sets.delete_all(api)
 
-    if no_confirmation or confirm_delete("policies"):
+    if no_confirmation or confirm_delete_resource_type("policies"):
         policies.delete_all(api)
 
-    if no_confirmation or confirm_delete("registry modules"):
+    if no_confirmation or confirm_delete_resource_type("registry modules"):
         registry_modules.delete_all(api)
 
-    if no_confirmation or confirm_delete("agent pools"):
+    if no_confirmation or confirm_delete_resource_type("agent pools"):
         agent_pools.delete_all(api)
 
 
