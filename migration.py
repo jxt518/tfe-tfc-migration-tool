@@ -10,8 +10,6 @@ from tfc_migrate import \
 
 # TODO: review imports like urllib / ast
 # TODO: use a logger instead of print statements
-# TODO: break into a real main function
-# TODO: break out real write functions
 # TODO: replace "configuration" with "config"
 # TODO: replace "parameters" with "params"
 # TODO: use "source" and "target" rather than "new" and "old"
@@ -33,34 +31,29 @@ TFE_URL_TARGET = os.getenv("TFE_URL_TARGET", None)
 TFE_ORG_TARGET = os.getenv("TFE_ORG_TARGET", None)
 TFE_VCS_CONNECTION_MAP = ast.literal_eval(os.getenv("TFE_VCS_CONNECTION_MAP", None))
 
+
 def print_output(\
     teams_map, ssh_keys_map, ssh_key_name_map, workspaces_map, \
         workspace_to_ssh_key_map, workspace_to_configuration_version_map, \
             policies_map, policy_sets_map, sensitive_policy_set_parameter_data, \
                 sensitive_variable_data):
-    print("\n")
-    print("MIGRATION MAPS:")
-    print("teams_map:", teams_map)
-    print("\n")
-    print("ssh_keys_map:", ssh_keys_map)
-    print("\n")
-    print("ssh_keys_name_map:", ssh_key_name_map)
-    print("\n")
-    print("workspaces_map:", workspaces_map)
-    print("\n")
-    print("workspace_to_ssh_key_map:", workspace_to_ssh_key_map)
-    print("\n")
-    print("workspace_to_configuration_version_map:",
-        workspace_to_configuration_version_map)
-    print("\n")
-    print("policies_map:", policies_map)
-    print("\n")
-    print("policy_sets_map:", policy_sets_map)
-    print("\n")
-    print("sensitive_policy_set_parameter_data:",
-        sensitive_policy_set_parameter_data)
-    print("\n")
-    print("sensitive_variable_data:", sensitive_variable_data)
+    lines = [
+        "MIGRATION MAPS:",
+        "teams_map: %s\n\n" % teams_map,
+        "ssh_keys_map: %s\n\n" % ssh_keys_map,
+        "ssh_key_name_map: %s\n\n" % ssh_key_name_map,
+        "workspaces_map: %s\n\n" % workspaces_map,
+        "workspace_to_ssh_key_map: %s\n\n" % workspace_to_ssh_key_map,
+        "workspace_to_configuration_version_map: %s\n\n" % workspace_to_configuration_version_map,
+        "policies_map: %s\n\n" % policies_map,
+        "policy_sets_map: %s\n\n" % policy_sets_map,
+        "sensitive_policy_set_parameter_data: %s\n\n" % sensitive_policy_set_parameter_data,
+        "sensitive_variable_data: %s\n\n" % sensitive_variable_data
+    ]
+
+    for line in lines:
+        print(line)
+
 
 def write_output(\
     teams_map, ssh_keys_map, ssh_key_name_map, workspaces_map, \
@@ -68,17 +61,21 @@ def write_output(\
             policies_map, policy_sets_map, sensitive_policy_set_parameter_data, \
                 sensitive_variable_data):
 
+        lines = [
+            "teams_map: %s\n\n" % teams_map,
+            "ssh_keys_map: %s\n\n" % ssh_keys_map,
+            "ssh_key_name_map: %s\n\n" % ssh_key_name_map,
+            "workspaces_map: %s\n\n" % workspaces_map,
+            "workspace_to_ssh_key_map: %s\n\n" % workspace_to_ssh_key_map,
+            "workspace_to_configuration_version_map: %s\n\n" % workspace_to_configuration_version_map,
+            "policies_map: %s\n\n" % policies_map,
+            "policy_sets_map: %s\n\n" % policy_sets_map,
+            "sensitive_policy_set_parameter_data: %s\n\n" % sensitive_policy_set_parameter_data,
+            "sensitive_variable_data: %s\n\n" % sensitive_variable_data
+        ]
+
     with open("outputs.txt", "w") as f:
-        f.write("teams_map: %s\n\n" % teams_map)
-        f.write("ssh_keys_map: %s\n\n" % ssh_keys_map)
-        f.write("ssh_key_name_map: %s\n\n" % ssh_key_name_map)
-        f.write("workspaces_map: %s\n\n" % workspaces_map)
-        f.write("workspace_to_ssh_key_map: %s\n\n" % workspace_to_ssh_key_map)
-        f.write("workspace_to_configuration_version_map: %s\n\n" % workspace_to_configuration_version_map)
-        f.write("policies_map: %s\n\n" % policies_map)
-        f.write("policy_sets_map: %s\n\n" % policy_sets_map)
-        f.write("sensitive_policy_set_parameter_data: %s\n\n" % sensitive_policy_set_parameter_data)
-        f.write("sensitive_variable_data: %s\n\n" % sensitive_variable_data)
+        f.write("".join(lines))
 
 
 def migrate_to_target(api_source, api_target, write_to_file):
@@ -151,6 +148,8 @@ def migrate_to_target(api_source, api_target, write_to_file):
 
 
 def delete_all_from_target(api):
+    # TODO: confirm all of these before running, since they are destructive
+
     # Deleting workspaces allows us to skip deleting notification configs,
     # config_versions, state_versions, workspace_vars.
     workspaces.delete_all(api)
