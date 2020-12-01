@@ -55,9 +55,12 @@ def migrate(api_source, api_target, tfe_vcs_connection_map, agent_pools_map):
 
         # Set agent pool ID unless target is TFE
         # NOTE: probably shouldn't be getting the "private" property from the api_target
-        if source_workspace["attributes"]["execution-mode"] == "agent" and 'app.terraform.io' in api_target._instance_url:
-            new_workspace_payload["data"]["attributes"]["agent-pool-id"] = agent_pools_map[source_workspace["relationships"]["agent-pool"]["data"]["id"]]
-
+        if source_workspace["attributes"]["execution-mode"] == "agent":
+            if 'app.terraform.io' in api_target._instance_url:
+                new_workspace_payload["data"]["attributes"]["agent-pool-id"] = agent_pools_map[source_workspace["relationships"]["agent-pool"]["data"]["id"]]
+            else:
+                new_workspace_payload["data"]["attributes"]["execution-mode"] = "remote"
+        
         if source_workspace["attributes"]["vcs-repo"] is not None:
             new_workspace_payload["data"]["attributes"]["vcs-repo"] = {
                 "identifier": source_workspace["attributes"]["vcs-repo-identifier"],
