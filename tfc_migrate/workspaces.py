@@ -61,8 +61,7 @@ def migrate(api_source, api_target, tfe_vcs_connection_map, agent_pools_map):
         if source_workspace["attributes"]["vcs-repo"] is not None:
             new_workspace_payload["data"]["attributes"]["vcs-repo"] = {
                 "identifier": source_workspace["attributes"]["vcs-repo-identifier"],
-                "oauth-token-id": tfe_vcs_connection_map\
-                    [source_workspace["attributes"]["vcs-repo"]["oauth-token-id"]],
+                "oauth-token-id": tfe_vcs_connection_map["target"],
                 "branch": branch,
                 "default-branch": default_branch,
                 "ingress-submodules": ingress_submodules

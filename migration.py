@@ -9,6 +9,7 @@ from tfc_migrate import \
                 policy_set_params
 
 # TODO: ast import?
+# TODO: note somewhere that this is a 1:1 migration (for now, we can improve this if needed)
 # TODO: determine which of the unused functions we can delete, otherwise implement them properly
 # TODO: the maps that are output need to be more explicit and not just rely on key-value
 # TODO: similarly, clean up TFE_VCS_CONNECTION_MAP
@@ -33,7 +34,6 @@ TFE_ORG_TARGET = os.getenv("TFE_ORG_TARGET", None)
 
 # TODO: read this from a file instead of env
 TFE_VCS_CONNECTION_MAP = ast.literal_eval(os.getenv("TFE_VCS_CONNECTION_MAP", None))
-
 
 def confirm_delete_resource_type(resource_type):
     answer = ""

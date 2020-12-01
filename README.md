@@ -23,7 +23,7 @@ export TFE_TOKEN_TARGET="foo"
 export TFE_URL_TARGET="https://app.terraform.io"
 export TFE_ORG_TARGET="bar"
 
-export TFE_VCS_CONNECTION_MAP={\"ot-d6BrgrjXukPhtSR2\":\"ot-B842e1RVfdv9BM1X\"}
+export TFE_VCS_CONNECTION_MAP={\"source\": \"ot-foo\", \"target\" :\"ot-bar\"}
 ```
 
 NOTE:

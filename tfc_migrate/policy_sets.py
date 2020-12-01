@@ -47,8 +47,7 @@ def migrate(\
                 "identifier": source_policy_set["attributes"]["vcs-repo"]["identifier"],
                 "ingress-submodules": source_policy_set\
                     ["attributes"]["vcs-repo"]["ingress-submodules"],
-                "oauth-token-id": tfe_vcs_connection_map\
-                    [source_policy_set["attributes"]["vcs-repo"]["oauth-token-id"]]
+                "oauth-token-id": tfe_vcs_connection_map["target"]
             }
 
             if not source_policy_set["attributes"]["global"]:
