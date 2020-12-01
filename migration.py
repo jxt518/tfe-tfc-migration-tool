@@ -12,7 +12,6 @@ from tfc_migrate import \
 # TODO: note somewhere that this is a 1:1 migration (for now, we can improve this if needed)
 # TODO: determine which of the unused functions we can delete, otherwise implement them properly
 # TODO: the maps that are output need to be more explicit and not just rely on key-value
-# TODO: similarly, clean up TFE_VCS_CONNECTION_MAP
 # TODO: Create a class that funs all the migrate calls as sub functions, w/ a logger
 # TODO: remove the TFE_* from all migrate function calls, retrieve that information from the API object itself.
 # TODO: Create a TF config file that will create all the resources that are needed to test a migration
