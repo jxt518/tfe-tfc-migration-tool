@@ -26,6 +26,7 @@ TFE_TOKEN_TARGET = os.getenv("TFE_TOKEN_TARGET", None)
 TFE_URL_TARGET = os.getenv("TFE_URL_TARGET", None)
 TFE_ORG_TARGET = os.getenv("TFE_ORG_TARGET", None)
 
+# TODO: take this as an argument so that we can use a private file rather than commit it to the repo
 with open("vcs.example.json", "r") as f:
     TFE_VCS_CONNECTION_MAP = json.loads(f.read())
 

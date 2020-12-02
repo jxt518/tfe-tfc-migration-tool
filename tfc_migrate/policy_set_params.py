@@ -34,11 +34,12 @@ def migrate(\
                     }
                 }
 
-                # TODO: log the parameter creation
-
                 # Create the policy set parameter in the target organization
                 new_parameter = api_target.policy_set_params.create(
                     new_policy_set_id, new_policy_parameter_payload)["data"]
+
+                print(f"\t policy set parameter %s created..." % policy_set_parameter_key)
+
                 new_parameter_id = new_parameter["id"]
 
                 if policy_set_parameter_sensitive and return_sensitive_variable_data:
