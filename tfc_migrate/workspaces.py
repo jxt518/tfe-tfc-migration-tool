@@ -62,9 +62,14 @@ def migrate(api_source, api_target, tfe_vcs_connection_map, agent_pools_map):
                 new_workspace_payload["data"]["attributes"]["execution-mode"] = "remote"
         
         if source_workspace["attributes"]["vcs-repo"] is not None:
+            oauth_token_id = ""
+            for tfe_vcs_connection in tfe_vcs_connection_map:
+                if tfe_vcs_connection["source"] == workspace["attributes"]["vcs-repo"]["oauth-token-id"]:
+                    oauth_token_id = tfe_vcs_connection["target"]
+            
             new_workspace_payload["data"]["attributes"]["vcs-repo"] = {
                 "identifier": source_workspace["attributes"]["vcs-repo-identifier"],
-                "oauth-token-id": tfe_vcs_connection_map["target"],
+                "oauth-token-id": oauth_token_id,
                 "branch": branch,
                 "default-branch": default_branch,
                 "ingress-submodules": ingress_submodules

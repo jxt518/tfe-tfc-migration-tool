@@ -42,12 +42,17 @@ def migrate(\
         }
 
         if source_policy_set["attributes"]["versioned"]:
+            oauth_token_id = ""
+            for tfe_vcs_connection in tfe_vcs_connection_map:
+                if tfe_vcs_connection["source"] == policy_set["attributes"]["vcs-repo"]["oauth-token-id"]:
+                    oauth_token_id = tfe_vcs_connection["target"]
+
             new_policy_set_payload["data"]["attributes"]["vcs-repo"] = {
                 "branch": source_policy_set["attributes"]["vcs-repo"]["branch"],
                 "identifier": source_policy_set["attributes"]["vcs-repo"]["identifier"],
                 "ingress-submodules": source_policy_set\
                     ["attributes"]["vcs-repo"]["ingress-submodules"],
-                "oauth-token-id": tfe_vcs_connection_map["target"]
+                "oauth-token-id": oauth_token_id
             }
 
             if not source_policy_set["attributes"]["global"]:

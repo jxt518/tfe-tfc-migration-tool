@@ -21,6 +21,11 @@ def migrate(api_source, api_target, tfe_vcs_connection_map):
         source_module_data = \
             api_source.registry_modules.show(\
                 source_module_name, source_module["provider"])["data"]
+        
+        oauth_token_id = ""
+        for tfe_vcs_connection in tfe_vcs_connection_map:
+            if tfe_vcs_connection["source"] == module_data["attributes"]["vcs-repo"]["oauth-token-id"]:
+                oauth_token_id = tfe_vcs_connection["target"]
 
         # Build the new module payload
         new_module_payload = {
@@ -30,7 +35,7 @@ def migrate(api_source, api_target, tfe_vcs_connection_map):
                         "identifier": source_module_data["attributes"]["vcs-repo"]["identifier"],
                         # TODO: NOTE that if the VCS the module was originally connected to has been
                         # deleted, it will not return an Oauth Token ID and this will error.
-                        "oauth-token-id": tfe_vcs_connection_map["target"],
+                        "oauth-token-id": oauth_token_id,
                         "display_identifier": source_module_data\
                             ["attributes"]["vcs-repo"]["display-identifier"]
                     }
