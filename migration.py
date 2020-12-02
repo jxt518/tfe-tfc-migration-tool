@@ -8,16 +8,11 @@ from tfc_migrate import \
             agent_pools, workspace_vars, run_triggers, state_versions, \
                 policy_set_params
 
-# TODO: ast import?
 # TODO: note somewhere that this is a 1:1 migration (for now, we can improve this if needed)
-# TODO: determine which of the unused functions we can delete, otherwise implement them properly
-# TODO: the maps that are output need to be more explicit and not just rely on key-value
-# TODO: Create a class that funs all the migrate calls as sub functions, w/ a logger
-# TODO: remove the TFE_* from all migrate function calls, retrieve that information from the API object itself.
+# TODO: remove the TFE_TOKEN_SOURCE arg
 # TODO: Create a TF config file that will create all the resources that are needed to test a migration
-# TODO: use a logger instead of print statements
 # TODO: double check all functions that need to be are idempotent
-# TODO: double check all modules that need to, have delete functions
+# TODO: double check all modules have delete functions
 # TODO: logging should have tabs to be more readable
 
 
@@ -33,6 +28,7 @@ TFE_ORG_TARGET = os.getenv("TFE_ORG_TARGET", None)
 
 with open("vcs.example.json", "r") as f:
     TFE_VCS_CONNECTION_MAP = json.loads(f.read())
+
 
 def confirm_delete_resource_type(resource_type):
     answer = ""
@@ -75,7 +71,8 @@ def handle_output(\
 def migrate_to_target(api_source, api_target, write_to_file):
     teams_map = teams.migrate(api_source, api_target)
 
-    # TODO: org_membership_map = org_memberships.migrate(api_source, api_target, teams_map)
+    # TODO: only sends out invites, also most users are probably using SSO.
+    # org_membership_map = org_memberships.migrate(api_source, api_target, teams_map)
 
     ssh_keys_map, ssh_key_name_map = ssh_keys.migrate_keys(api_source, api_target)
 
@@ -84,28 +81,25 @@ def migrate_to_target(api_source, api_target, write_to_file):
     workspaces_map, workspace_to_ssh_key_map = \
         workspaces.migrate(api_source, api_target, TFE_VCS_CONNECTION_MAP, agent_pools_map)
 
-    # TODO: ssh_keys.migrate_key_files(api_target, ssh_key_name_map, ssh_key_file_path_map)
+    # TODO: figure out how we want to handle the user inputing sensitive data
+    # ssh_keys.migrate_key_files(api_target, ssh_key_name_map, ssh_key_file_path_map)
+
     workspaces_map, workspace_to_ssh_key_map = \
         workspaces.migrate(api_source, api_target, TFE_VCS_CONNECTION_MAP, agent_pools_map)
 
     state_versions.migrate_current(api_source, api_target, workspaces_map)
 
-    """
-    NOTE: if you wish to generate a map of Sensitive variables that can be used to update
-    those values via the migrate_workspace_sensitive_variables method, pass True as the
-    final argument (defaults to False).
-    # TODO: right place for this note?
-    """
-    # TODO: is this var name accurate?
     sensitive_variable_data = workspace_vars.migrate(api_source, api_target, workspaces_map)
 
-    # TODO: workspace_vars.migrate_sensitive(api_target, sensitive_variable_data_map)
+    # TODO: figure out how we want to handle the user inputing sensitive data
+    # workspace_vars.migrate_sensitive(api_target, sensitive_variable_data_map)
 
     workspaces.migrate_ssh_keys( \
         api_source, api_target, workspaces_map, workspace_to_ssh_key_map, ssh_keys_map)
 
     run_triggers.migrate(api_source, api_target, workspaces_map)
 
+    # TODO: if this is tied to a user email and it doesn't exist, then this will not work.
     notification_configs.migrate(api_source, api_target, workspaces_map)
 
     team_access.migrate(api_source, api_target, workspaces_map, teams_map)
@@ -113,7 +107,8 @@ def migrate_to_target(api_source, api_target, write_to_file):
     workspace_to_config_version_map = config_versions.migrate( \
         api_source, api_target, workspaces_map)
 
-    # TODO: config_versions.migrate_config_files(\
+    # TODO: manage extracting state and publishing tarball
+    # config_versions.migrate_config_files(\
     #   api_target, workspace_to_config_version_map, workspace_to_file_path_map)
 
     policies_map = policies.migrate(api_source, api_target, TFE_TOKEN_SOURCE)
@@ -126,7 +121,7 @@ def migrate_to_target(api_source, api_target, write_to_file):
     sensitive_policy_set_parameter_data = \
         policy_set_params.migrate(api_source, api_target, policy_sets_map)
 
-    # TODO: what is this function?
+    # TODO: figure out how we want to handle the user inputing sensitive data
     # policy_set_params.migrate_sensitive(api_target, sensitive_policy_set_parameter_data_map)
 
     registry_modules.migrate(api_source, api_target, TFE_VCS_CONNECTION_MAP)
@@ -138,6 +133,10 @@ def migrate_to_target(api_source, api_target, write_to_file):
 
 
 def delete_all_from_target(api, no_confirmation):
+    # TODO: allow for deletion of specific resources, don't just rely on
+    # cascading deletes. Make sure the ordering makes sense so no cascading
+    # deletes occur. All modules must have a delete function.
+
     # Deleting workspaces allows us to skip deleting notification configs,
     # config_versions, run_triggers, state_versions, workspace_vars.
     if no_confirmation or confirm_delete_resource_type("workspaces"):
@@ -183,6 +182,8 @@ if __name__ == "__main__":
     parser.add_argument('--delete-all', dest="delete_all", action="store_true", help="Delete all resources from the target API.")
     parser.add_argument('--no-confirmation', dest="no_confirmation", action="store_true", help="If set, don't ask for confirmation before deleting all target resources.")
     args = parser.parse_args()
+
+    # TODO: take in migrate_all or migrate_current
 
     api_source = TFC(TFE_TOKEN_SOURCE, url=TFE_URL_SOURCE)
     api_source.set_org(TFE_ORG_SOURCE)

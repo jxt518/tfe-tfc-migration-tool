@@ -11,9 +11,12 @@ def migrate(api_source, api_target):
     for target_team in target_teams:
         target_teams_data[target_team["attributes"]["name"]] = target_team["id"]
 
-    # TODO: not sure we can always assume the owners org will be the first in the array.
-    # At the very least it"s not prudent, but it"s likely to introduce issues down the line.
-    new_org_owners_team_id = source_teams[0]["id"]
+    new_org_owners_team_id = None
+
+    for source_team in source_teams:
+        if source_team["attributes"]["name"] == "owners":
+            new_org_owners_team_id = source_team["id"]
+            break
 
     teams_map = {}
     for source_team in source_teams:
@@ -48,6 +51,7 @@ def migrate(api_source, api_target):
 
             # Create team in the target org
             new_team = api_target.teams.create(new_team_payload)
+            print(f"\t team %s created..." % source_team_name)
 
             # Build Team ID Map
             teams_map[source_team["id"]] = new_team["data"]["id"]
@@ -60,12 +64,12 @@ def migrate(api_source, api_target):
 def delete_all(api_target):
     print("Deleting teams...")
 
-    teams = api_target.teams.list()['data']
+    teams = api_target.teams.list()["data"]
     if teams:
         for team in teams:
             team_name = team["attributes"]["name"]
             if team_name != "owners":
                 print(f"\t deleting team %s..." % team_name)
-                api_target.teams.destroy(team['id'])
+                api_target.teams.destroy(team["id"])
 
     print("Teams deleted.")

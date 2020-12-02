@@ -34,7 +34,6 @@ NOTE:
 
 ### 3. Select Desired Functions
 
-- TODO: add these as flags?
 
 Choose which components you want to migrate and comment out any others in [`migration.py`](migration.py).  For example, you may choose whether you want to `migrate_all_state` for your Workspaces or `migrate_current_state`, but you should not select both.  For more insight into what each function does, please refer to the contents of[`functions.py`](functions.py).
 
@@ -85,8 +84,3 @@ The following migration operations are currently supported:
 This migration utility leverages the [Terraform Cloud/Enterprise API](https://www.terraform.io/docs/cloud/api/index.html) and the [terrasnek](https://github.com/dahlke/terrasnek) Python Client for interacting with it.  For security reasons, there are certain Sensitive values that cannot be extracted (ex. Sensitive Variables, Sensitive Policy Set params, and SSH Keys), so those will need to be re-added after the migration is complete (the Keys will, however, be migrated).  For convenience, additional methods have been included to enable Sensitive value migration (Sensitive Variables, Sensitive Policy Set params, and SSH Keys).
 
 **IMPORTANT:** These scripts expect that the destination Organization (i.e TFE_ORG_TARGET) is a blank slate and has not had any changes made ahead of time through other means.  If changes have been made to the target organization prior to using this tool, errors are likely to occur.
-
-### TODO
-
-- add the new flag migrate / delete logic
-- verify that all these steps can be copy pasted.

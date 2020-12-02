@@ -11,10 +11,10 @@ def migrate(\
         new_policy_set_id = policy_sets_map[policy_set_id]
 
         # Pull policy sets from the old organization
-        policy_set_parameters = api_source.policy_set_params.list(
-            policy_set_id)["data"]
+        policy_set_parameters = api_source.policy_set_params.list(policy_set_id)["data"]
 
         if policy_set_parameters:
+            # NOTE: this is reversed to maintain the order present in the source
             for policy_set_parameter in reversed(policy_set_parameters):
                 policy_set_parameter_key = policy_set_parameter["attributes"]["key"]
                 policy_set_parameter_value = policy_set_parameter["attributes"]["value"]
@@ -33,6 +33,8 @@ def migrate(\
                         }
                     }
                 }
+
+                # TODO: log the parameter creation
 
                 # Create the policy set parameter in the target organization
                 new_parameter = api_target.policy_set_params.create(
@@ -61,11 +63,10 @@ def migrate(\
 
 
 """
-NOTE: The sensitive_policy_set_parameter_data_map map must be created ahead of time. The
-easiest way to do this is to update the value for each variable in the list returned by
+NOTE: The sensitive_policy_set_parameter_data_map map must be manually created ahead of time.
+The easiest way to do this is to update the value for each variable in the list returned by
 the migrate_policy_set_parameters method
 """
-# TODO: do we need this function?
 def migrate_sensitive(api_target, sensitive_policy_set_parameter_data_map):
     for sensitive_policy_set_parameter in sensitive_policy_set_parameter_data_map:
         # Build the new parameter payload
@@ -91,11 +92,11 @@ def migrate_sensitive(api_target, sensitive_policy_set_parameter_data_map):
 # TODO: handle paging
 def delete_all(api_target):
     # TODO: logging
-    policy_sets = api_target.policy_sets.list(
-        page_size=50, include="policies,workspaces")['data']
+    policy_sets = api_target.policy_sets.list(page_size=50, include="policies,workspaces")["data"]
 
     if policy_sets:
         for policy_set in policy_sets:
-            params = api_target.policy_set_params.list(policy_set['id'])['data']
+            params = api_target.policy_set_params.list(policy_set["id"])["data"]
             for parameter in params:
-                api_target.policy_set_params.destroy(policy_set['id'], parameter['id'])
+                print("DELETE POLICY SET PARAM", parameter)
+                api_target.policy_set_params.destroy(policy_set["id"], parameter["id"])

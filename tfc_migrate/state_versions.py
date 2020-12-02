@@ -3,10 +3,9 @@ import hashlib
 import json
 from urllib import request
 
-# TODO: get rid of all state function if we aren't going to use it
 def migrate_all(api_source, api_target, workspaces_map):
     # TODO: logging
-    # TODO: get rid of this function if we aren't using it
+
     for workspace_id in workspaces_map:
         workspace_name = api_source.workspaces.show(workspace_id=workspace_id)\
             ["data"]["attributes"]["name"]
@@ -25,7 +24,7 @@ def migrate_all(api_source, api_target, workspaces_map):
 
         state_versions = api_source.state_versions.list(filters=state_filters)["data"]
         if state_versions:
-            # TODO: why is this reversed?
+            # NOTE: this is reversed to maintain the order present in the source
             for state_version in reversed(state_versions):
                 state_url = state_version["attributes"]["hosted-state-download-url"]
                 pull_state = request.urlopen(state_url)

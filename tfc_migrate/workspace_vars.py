@@ -17,7 +17,7 @@ def migrate(\
         existing_workspace_vars = api_target.workspace_vars.list(new_workspace_id)["data"]
         existing_variable_names = [var["attributes"]["key"] for var in existing_workspace_vars]
 
-        # TODO: why is this reversed?
+        # NOTE: this is reversed to maintain the order present in the source
         for variable in reversed(workspace_vars):
             variable_key = variable["attributes"]["key"]
 
@@ -49,6 +49,8 @@ def migrate(\
                     new_workspace_id, new_variable_payload)["data"]
                 new_variable_id = new_variable["id"]
 
+                # TODO: We have to return all the senistive variable data, even if it already
+                # existed.
                 if variable_sensitive and return_sensitive_variable_data:
                     workspace_name = api_target.workspaces.show(workspace_id=workspace_id)\
                         ["data"]["attributes"]["name"]
@@ -67,11 +69,9 @@ def migrate(\
 
                     sensitive_variable_data.append(variable_data)
 
-    # TODO: make sure these values are always included even if we skip
     return sensitive_variable_data
 
 
-# TODO: what is the purpose of this function? Can it be removed?
 def migrate_sensitive(api_target, sensitive_variable_data_map):
     """
     NOTE: The sensitive_variable_data_map map must be created ahead of time. The easiest way to

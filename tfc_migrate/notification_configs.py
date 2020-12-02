@@ -11,6 +11,7 @@ def migrate(api_source, api_target, workspaces_map):
 
         if notifications:
             for notification in notifications:
+                notification_name = notification["attributes"]["name"]
                 if notification["attributes"]["destination-type"] == "email":
                     # Build the new notification payload
                     new_notification_payload = {
@@ -19,7 +20,7 @@ def migrate(api_source, api_target, workspaces_map):
                             "attributes": {
                                 "destination-type": notification["attributes"]["destination-type"],
                                 "enabled": notification["attributes"]["enabled"],
-                                "name": notification["attributes"]["name"],
+                                "name": notification_name,
                                 "triggers": notification["attributes"]["triggers"]
                             },
                             "relationships": {
@@ -41,7 +42,7 @@ def migrate(api_source, api_target, workspaces_map):
                             "attributes": {
                                 "destination-type": notification["attributes"]["destination-type"],
                                 "enabled": notification["attributes"]["enabled"],
-                                "name": notification["attributes"]["name"],
+                                "name": notification_name,
                                 "token": notification["attributes"]["token"],
                                 "url": notification["attributes"]["url"],
                                 "triggers": notification["attributes"]["triggers"]
@@ -50,20 +51,24 @@ def migrate(api_source, api_target, workspaces_map):
                     }
 
                     # Add notifications to the target workspace
-                    api_target.notification_configs.create(\
+                    api_target.notification_configs.create( \
                         workspaces_map[workspace_id], new_notification_payload)
+
+                    print(f"\t notification config %s created..." % notification_name)
 
     print("Notification configs successfully migrated.")
 
 
 def delete_all(api_target):
-    # TODO: logging
-    workspaces = api_target.workspaces.list()['data']
+    print("Deleting notification configs...")
+
+    workspaces = api_target.workspaces.list()["data"]
 
     for workspace in workspaces:
-        notifications = api_target.notification_configs.list(workspace['id'])['data']
+        notifications = api_target.notification_configs.list(workspace["id"])["data"]
 
-        if notifications:
-            for notification in notifications:
-                api_target.notification_configs.destroy(notification['id'])
+        for notification in notifications:
+            print(f"\t deleting notification config %s created..." % notification["attributes"]["name"])
+            api_target.notification_configs.destroy(notification["id"])
 
+    print("Notification configs deleted.")

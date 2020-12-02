@@ -60,13 +60,13 @@ def migrate(api_source, api_target, tfe_vcs_connection_map, agent_pools_map):
                 new_workspace_payload["data"]["attributes"]["agent-pool-id"] = agent_pools_map[source_workspace["relationships"]["agent-pool"]["data"]["id"]]
             else:
                 new_workspace_payload["data"]["attributes"]["execution-mode"] = "remote"
-        
+
         if source_workspace["attributes"]["vcs-repo"] is not None:
             oauth_token_id = ""
             for tfe_vcs_connection in tfe_vcs_connection_map:
                 if tfe_vcs_connection["source"] == workspace["attributes"]["vcs-repo"]["oauth-token-id"]:
                     oauth_token_id = tfe_vcs_connection["target"]
-            
+
             new_workspace_payload["data"]["attributes"]["vcs-repo"] = {
                 "identifier": source_workspace["attributes"]["vcs-repo-identifier"],
                 "oauth-token-id": oauth_token_id,
@@ -77,17 +77,14 @@ def migrate(api_source, api_target, tfe_vcs_connection_map, agent_pools_map):
 
         # Build the new workspace
         new_workspace = api_target.workspaces.create(new_workspace_payload)
-        print(f"\t Workspace %s created..." % source_workspace_name)
+        print(f"\t workspace %s created..." % source_workspace_name)
 
         new_workspace_id = new_workspace["data"]["id"]
         workspaces_map[source_workspace["id"]] = new_workspace_id
 
-        try:
+        if "ssh-key" in source_workspace["relationships"]:
             ssh_key = source_workspace["relationships"]["ssh-key"]["data"]["id"]
             workspace_to_ssh_key_map[source_workspace["id"]] = ssh_key
-        except:
-            # TODO: catch a real exception - what to do here?
-            continue
 
     print("Workspaces successfully migrated.")
     return workspaces_map, workspace_to_ssh_key_map
@@ -111,8 +108,10 @@ def migrate_ssh_keys(\
                 }
             }
 
-            # Add SSH Keys to the target Workspace
-            api_target.workspaces.assign_ssh_key(\
+            # TODO: tabbed logging
+
+            # Add SSH Keys to the target workspace
+            api_target.workspaces.assign_ssh_key(
                 workspaces_map[key], new_workspace_ssh_key_payload)
 
     print("SSH keys for workspaces successfully migrated.")
@@ -121,11 +120,11 @@ def migrate_ssh_keys(\
 def delete_all(api_target):
     print("Deleting workspaces...")
 
-    workspaces = api_target.workspaces.list()['data']
+    workspaces = api_target.workspaces.list()["data"]
 
     if workspaces:
         for workspace in workspaces:
             print(f"\t deleting workspace %s..." % workspace["attributes"]["name"])
-            api_target.workspaces.destroy(workspace['id'])
+            api_target.workspaces.destroy(workspace["id"])
 
     print("Workspaces deleted.")

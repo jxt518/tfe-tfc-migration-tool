@@ -21,7 +21,7 @@ def migrate(api_source, api_target, tfe_vcs_connection_map):
         source_module_data = \
             api_source.registry_modules.show(\
                 source_module_name, source_module["provider"])["data"]
-        
+
         oauth_token_id = ""
         for tfe_vcs_connection in tfe_vcs_connection_map:
             if tfe_vcs_connection["source"] == module_data["attributes"]["vcs-repo"]["oauth-token-id"]:
@@ -53,11 +53,11 @@ def migrate(api_source, api_target, tfe_vcs_connection_map):
 def delete_all(api_target):
     print("Deleting registry modules...")
 
-    modules = api_target.registry_modules.list()['modules']
+    modules = api_target.registry_modules.list()["modules"]
 
     if modules:
         for module in modules:
             print(f"\t deleting registry_module %s..." % module["name"])
-            api_target.registry_modules.destroy(module['name'])
+            api_target.registry_modules.destroy(module["name"])
 
     print("Registry modules deleted.")

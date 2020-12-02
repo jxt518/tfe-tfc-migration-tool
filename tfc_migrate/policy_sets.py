@@ -2,8 +2,9 @@
 
 def migrate(\
     api_source, api_target, tfe_vcs_connection_map, workspaces_map, policies_map):
-    # Pull policy sets from the old organization
-    # TODO: account for larger sizes of policy sets (more than 50)
+
+    # Pull policy sets from the source organization
+    # TODO: handle paging
     source_policy_sets = api_source.policy_sets.list(
         page_size=50, include="policies,workspaces")["data"]
     target_policy_sets = api_target.policy_sets.list(
@@ -31,8 +32,7 @@ def migrate(\
                 "type": "policy-sets",
                 "attributes": {
                     "name": source_policy_set_name,
-                    # TODO: should this be description?
-                    "description": source_policy_set["attributes"]["name"],
+                    "description": source_policy_set["attributes"]["description"],
                     "global": source_policy_set["attributes"]["global"],
                     "policies-path": source_policy_set["attributes"]["policies-path"]
                 },
@@ -86,6 +86,8 @@ def migrate(\
 
         # Create the policy set in the target organization
         new_policy_set = api_target.policy_sets.create(new_policy_set_payload)
+        print(f"\t policy set %s created..." % source_policy_set_name)
+
         policy_sets_map[source_policy_set["id"]] = new_policy_set["data"]["id"]
 
     print("Policy sets successfully migrated.")
@@ -93,16 +95,14 @@ def migrate(\
     return policy_sets_map
 
 
-# TODO: handle paging
 def delete_all(api_target):
     print("Deleting policy sets...")
 
-    policy_sets = api_target.policy_sets.list(page_size=50, include="policies,workspaces")['data']
+    # TODO: handle paging
+    policy_sets = api_target.policy_sets.list(page_size=50, include="policies,workspaces")["data"]
 
-    # TODO: do these if checks return false on empty arrays?
-    if policy_sets:
-        for policy_set in policy_sets:
-            print(f"\t deleting policy set %s..." % policy_set["attributes"]["name"])
-            api_target.policy_sets.destroy(policy_set['id'])
+    for policy_set in policy_sets:
+        print(f"\t deleting policy set %s..." % policy_set["attributes"]["name"])
+        api_target.policy_sets.destroy(policy_set["id"])
 
     print("Policy sets deleted.")

@@ -30,6 +30,9 @@ def migrate(api_source, api_target, workspaces_map):
                 # Create a config version in the target organization
                 new_config_version = api_target.config_versions.create(\
                     workspaces_map[workspace_id], new_config_version_payload)["data"]
+
+                print(f"\t config version for workspace %s created..." % workspace_name)
+
                 workspace_to_config_version_map[workspace_name] = \
                     new_config_version["id"]
 
@@ -37,15 +40,19 @@ def migrate(api_source, api_target, workspaces_map):
     return workspace_to_config_version_map
 
 
-# TODO: determine why this is different
 def migrate_config_files(\
     api_target, workspace_to_config_version_map, workspace_to_file_path_map):
+    print("Migrating config files...")
+
     for workspace_name in workspace_to_file_path_map:
         # NOTE: The workspace_to_file_path_map must be created ahead of time
         # with a format of {"workspace_name":"path/to/file"}
 
-        # TODO: logging
         # Upload the config file to the target workspace
         api_target.config_versions.upload(\
             workspace_to_file_path_map[workspace_name], \
                 workspace_to_config_version_map[workspace_name])
+
+        print(f"\t config files for workspace %s uploaded..." % workspace_name)
+
+    print("Config files migrated.")

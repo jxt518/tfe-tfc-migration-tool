@@ -3,8 +3,6 @@ This is an example version of the migrate_workspaces function that includes supp
 Managing these connections is not currently supported via the API, but might be in a future version.
 """
 
-# TODO: get rid of these
-
 # def migrate_workspaces(api_source, api_target, tfe_vcs_connection_map, agent_pool_id):
 #     # Fetch Workspaces from Existing Org
 #     workspaces = api_source.workspaces.list()["data"]

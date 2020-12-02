@@ -1,6 +1,5 @@
 
 
-# TODO: catch duplicates, clean up this file, optimize
 def migrate_keys(api_source, api_target):
     print("Migrating SSH keys...")
 
@@ -11,6 +10,7 @@ def migrate_keys(api_source, api_target):
     ssh_keys_map = {}
     ssh_key_name_map = {}
     if ssh_keys:
+        # NOTE: this is reversed to maintain the order present in the source
         for ssh_key in reversed(ssh_keys):
             # Build the new agent pool payload
             new_ssh_key_payload = {
@@ -71,6 +71,6 @@ def delete_all_keys(api_target):
     if ssh_keys:
         for ssh_key in ssh_keys:
             print(f"\t deleting SSH key %s..." % ssh_key["attributes"]["name"])
-            api_target.ssh_keys.destroy(ssh_key['id'])
+            api_target.ssh_keys.destroy(ssh_key["id"])
 
     print("SSH keys deleted.")

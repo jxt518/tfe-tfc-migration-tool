@@ -1,6 +1,5 @@
 
 
-# TODO: catch duplicates, clean up this file, optimize
 def migrate(api_source, api_target, workspaces_map, teams_map):
 
     print("Migrating team access...")
@@ -13,6 +12,9 @@ def migrate(api_source, api_target, workspaces_map, teams_map):
                 "value": workspace_id
             }
         ]
+
+        # TODO: list existing team access to catch duplicates rather than try/except
+        # TODO: optimize the payload creation
 
         # Pull teams from the old workspace
         workspace_teams = api_source.team_access.list(filters=workspace_team_filters)["data"]
@@ -84,8 +86,8 @@ def migrate(api_source, api_target, workspaces_map, teams_map):
                 try:
                     # Create the Team Workspace Access map for the target workspace
                     api_target.team_access.add_team_access(new_workspace_team_payload)
-                except Exception:
+                except Exception as err:
                     # TODO: what is this really doing?
-                    pass
+                    print(err)
 
     print("Team access successfully migrated.")
